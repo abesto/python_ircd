@@ -1,4 +1,3 @@
-from user import User
 import message
 import abnf
 

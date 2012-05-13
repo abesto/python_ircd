@@ -3,6 +3,7 @@ from dns import resolver, reversename
 from commands.base import Command
 from numeric_responses import *
 import db
+from _welcome import welcome
 
 
 class UserCommand(Command):
@@ -31,9 +32,5 @@ class UserCommand(Command):
         if self.user.registered.nick:
             db.registered(self.user)
             # TODO: return the rest of the welcome messages
-            return [
-                RPL_WELCOME(self.user),
-                RPL_YOURHOST(self.user),
-                RPL_CREATED(self.user)
-            ]
+            return welcome(self.user)
 

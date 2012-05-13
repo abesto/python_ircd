@@ -3,6 +3,7 @@ from message import Message as M
 from numeric_responses import *
 import db
 import abnf
+from _welcome import welcome
 
 
 class NickCommand(Command):
@@ -45,12 +46,7 @@ class NickCommand(Command):
             if self.user.registered.both:
                 db.registered(self.user)
                 # TODO: rest of the welcome messages
-                return [
-                    rename,
-                    RPL_WELCOME(self.user),
-                    RPL_YOURHOST(self.user),
-                    RPL_CREATED(self.user)
-                ]
+                return welcome([rename] + self.user)
                 #TODO: send NICK and USER to other servers
             return rename
 

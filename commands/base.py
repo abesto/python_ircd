@@ -37,3 +37,4 @@ class Command(object):
         else:
             self.user = socket.client
             return self.from_client(*message.parameters)
+

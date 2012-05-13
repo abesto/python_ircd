@@ -26,7 +26,7 @@ def handle(socket, address):
             try:
                 if 'disconnect' in resp:
                     socket.close()
-                    break
+                    return
             except TypeError:
                 pass
 

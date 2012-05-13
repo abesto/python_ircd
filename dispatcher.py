@@ -9,7 +9,7 @@ handlers = {}
 
 
 def register(command):
-    module = importlib.import_module('commands.%s' % command.lower())
+    module = importlib.import_module('commands.' + command.lower())
     handler = module.__dict__[command.capitalize() + 'Command']()
     if command != handler.command:
         raise Error('Command mismatch. Incoming command: %s. Handler command: %s.' % (command, handler.command))
