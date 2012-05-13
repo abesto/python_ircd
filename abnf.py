@@ -267,7 +267,7 @@ def channel(data):
         if data.apply(channelid):
             ret['id'] = data.last
         else:
-            return None
+            return False
 
     if not data.repeat(chanstring, 1, 50):
         return False

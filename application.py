@@ -4,6 +4,7 @@ import gevent.server
 import gevent.monkey
 gevent.monkey.patch_all()
 
+import config
 import dispatcher
 import message
 import router
@@ -30,5 +31,5 @@ def handle(socket, address):
             except TypeError:
                 pass
 
-server = gevent.server.StreamServer(('127.0.0.1', 6667), handle)
+server = gevent.server.StreamServer((config.listen_host, config.listen_port), handle)
 server.serve_forever()
