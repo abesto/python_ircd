@@ -1,76 +1,203 @@
-# Parsers for the ABNF definitions of RFC2812 Section 2.3.1
-# This is _not_ a generic ABNF parser, just some helper functions
-# and explicit parsing of the grammar specified in the RFC
-# without the use of regular expressions
+# DSL for parsing ABNF and parsers for the IRC grammar
 
 class Error(Exception): pass
 
 
 class ParserData:
-    """
-    State data used by the parser functions
-    """
     def __init__(self, str):
-        self.stack = []
         self.original = str
         self.str = str
-        self.last = ''
+        self.captured = []
 
     def shift(self, n):
-        self.stack.append(self.str[:n])
+        ret = self.str[:n]
         self.str = self.str[n:]
-        return self.stack[-1]
-
-    def apply(self, f):
-        before = self.str
-        retval = f(self)
-        if not retval:
-            self.str = before
-            return False
-        self.last = retval
-        return retval
-
-    def either(self, *args):
-        for f in args:
-            retval = self.apply(f)
-            if retval:
-                self.last = retval
-                return retval
-        return False
-
-    def repeat(self, f, min=0, max=float('inf'), initial=''):
-        ret = initial
-        i = 0
-        while i < min and self.apply(f):
-            ret += self.last
-            i += 1
-        if i < min:
-            return False
-        while i < max and self.apply(f):
-            ret += self.last
-        self.last = ret
         return ret
 
-
 def parse(str, parser, partial=False):
+    """ Public API"""
     data = ParserData(str)
     parsed = parser(data)
     if not partial and len(data.str) > 0:
         return False
+    if len(data.captured) > 0:
+        return data.captured
     return parsed
 
-
+class parser(object):
+    """
+    Base class of all parsers
+    """
+    def __init__(self, capture=False):
+        self.capture = capture
+    def _parse(self, data):
+        raise NotImplementedError()
+    def processed(self):
+        if self.data.str == '':
+            return self.checkpoint[0]
+        return self.checkpoint[0][:-len(self.data.str)]
+    def __call__(self, data):
+        self.data = data
+        self.checkpoint = (data.str, data.captured[0:])
+        retval = self._parse(data)
+        if not retval:
+            (data.str, data.captured) = self.checkpoint
+            retval = False
+        if retval is True:
+            retval = self.processed()
+        if self.capture and retval:
+            self.data.captured.append(retval)
+        return retval
 
 ###
-# Parser functions
+# Combinators
+###
+class either(parser):
+    def __init__(self, *args, **kwargs):
+        parser.__init__(self, kwargs['capture'] if 'capture' in kwargs else False)
+        self.rules = args
+    def _parse(self, data):
+        for f in self.rules:
+            if f(data):
+                return self.processed()
+        return False
+    def __str__(self):
+        return '( ' + ' / '.join([str(r) for r in self.rules]) + ' )'
+
+class repeat(parser):
+    def __init__(self, rule, min=0, max=float('inf'), **kwargs):
+        parser.__init__(self, kwargs['capture'] if 'capture' in kwargs else False)
+        self.rule = rule
+        self.min = min
+        self.max = max
+    def _parse(self, data):
+        i = 0
+        while i < self.min and self.rule(data):
+            i += 1
+        if i < self.min:
+            return False
+        while i < self.max and self.rule(data):
+            i += 1
+        return i <= self.max
+    def __str__(self):
+        if self.min == 0 and self.max == 1:
+            return '[ ' + str(self.rule) + ' ]'
+        ret = ''
+        if self.min == self.max:
+            ret += str(self.min)
+        else:
+            if self.min > 0:
+                ret += str(self.min)
+            ret += '*'
+            if self.max < float('inf'):
+                ret += str(self.max)
+        return ret + '( ' + str(self.rule) + ' )'
+
+class maybe(repeat):
+    def __init__(self, rule, **kwargs):
+        parser.__init__(self, kwargs['capture'] if 'capture' in kwargs else False)
+        self.rule = rule
+        self.min = 0
+        self.max = 1
+
+class sequence(parser):
+    def __init__(self, *args, **kwargs):
+        parser.__init__(self, kwargs['capture'] if 'capture' in kwargs else False)
+        self.rules = args
+    def _parse(self, data):
+        for f in self.rules:
+            if f(data) is False:
+                return False
+        return True
+    def __str__(self):
+        return ' '.join([str(r) for r in self.rules])
+###
+# Grammar elements
+###
+class string(parser):
+    def __init__(self, string, **kwargs):
+        parser.__init__(self, kwargs['capture'] if 'capture' in kwargs else False)
+        self.string = string
+    def _parse(self, data):
+        return self.string == data.shift(len(self.string))
+    def __str__(self):
+        return '"%s"'%self.string
+
+class charclass(parser):
+    def __init__(self, min, max, **kwargs):
+        parser.__init__(self, kwargs['capture'] if 'capture' in kwargs else False)
+        self.min = min
+        self.max = max
+    def _parse(self, data):
+        c = data.shift(1)
+        if c == '':
+            return False
+        n = ord(c)
+        return self.min <= n <= self.max
+    def __str__(self):
+        return '%%x%s-%s' % (self.min, self.max)
+
+###
+# IRC-specific parsers
+###
+letter = either(
+    charclass(0x41, 0x5A),
+    charclass(0x61, 0x7A)
+)
+nospcrlfcl = either(
+    charclass(0x01, 0x09),
+    charclass(0x0B, 0x0C),
+    charclass(0x0E, 0x1F),
+    charclass(0x21, 0x39),
+    charclass(0x3B, 0xFF)
+)
+digit = charclass(0x30, 0x39)
+space = string(' ')
+
+shortname = sequence(
+    either(letter, digit),
+    repeat(
+        either(letter, digit, string('-'))
+    ),
+    repeat(
+        either(letter, digit)
+    )
+)
+hostname = sequence(
+    shortname,
+    repeat(sequence(
+        string('.'), shortname
+    ))
+)
+
+middle = sequence(
+    nospcrlfcl,
+    repeat(either(string(':'), nospcrlfcl)),
+    capture=True
+)
+
+trailing = repeat(either(
+    string(':'), string(' '), nospcrlfcl
+), capture=True)
+
+params = either(
+    sequence(
+        repeat(sequence(space, middle), 14, 14),
+        maybe(sequence(space, maybe(string(':')), trailing))
+    ),
+    sequence(
+        repeat(sequence(space, middle), 0, 14),
+        maybe(sequence(space, string(':'), trailing))
+    )
+)
+
+
+####
+# Old parsers from here; these are now non-functional,
+# and will be rewritten to the above format
 ###
 
 def message(data):
-    ret = {
-        'prefix': None,
-        'command': '',
-        'params': []
-    }
     if data.apply(str_prefix(':')):
         if not data.apply(prefix):
             return False
@@ -127,71 +254,6 @@ def command(data):
         return False
     return data.last
 
-def params(data):
-    ret = []
-    for i in range(14):
-        if not data.apply(str_prefix(' ')):
-            return ret
-        param = data.apply(middle)
-
-        # trailing before 14 middles
-        if not param:
-            if not data.apply(str_prefix(':')):
-                return False
-            param = data.apply(trailing)
-            if not param:
-                return False
-            ret.append(param)
-            return ret
-
-        # no trailing
-        ret.append(param)
-
-    # trailing after 14 middles
-    if data.apply(str_prefix(' ')):
-        data.apply(str_prefix(':'))
-        param = data.apply(trailing)
-        if not param:
-            return False
-        ret.append(param)
-
-    return ret
-
-def char_inrange(data, *args):
-    c = data.shift(1)
-    if c == '':
-        return False
-    n = ord(c)
-    for tuple in args:
-        if tuple[0] <= n <= tuple[1]:
-            return c
-    return False
-
-def nospcrlfcl(data):
-    return char_inrange(data,
-        (0x01, 0x09),
-        (0x0B, 0x0C),
-        (0x0E, 0x1F),
-        (0x21, 0x39),
-        (0x3B, 0xFF)
-    )
-
-def middle(data):
-    ret = data.apply(nospcrlfcl)
-    if not ret:
-        return False
-    while data.either(str_prefix(':'), nospcrlfcl):
-        ret += data.last
-    return ret
-
-def trailing(data):
-    ret = ''
-    while data.either(str_prefix(':'), str_prefix(' '), nospcrlfcl):
-        ret += data.last
-    if ret == '':
-        return False
-    return ret
-
 def space(data):
     if data.shift(1) == ' ':
         return ' '
@@ -233,12 +295,6 @@ def special(data):
         (0x5B, 0x60),
         (0x7B, 0x7D)
     )
-
-def digit(data):
-    return char_inrange(data, (0x30, 0x39))
-
-def str_prefix(str):
-    return lambda data: str if data.shift(len(str)) == str else False
 
 def nickname(data):
     if not data.either(letter, special):
@@ -306,26 +362,6 @@ def servername(data):
 def host(data):
     return data.either(hostname, hostaddr)
 
-def hostname(data):
-    ret = data.apply(shortname)
-    if not ret:
-        return False
-    while data.apply(str_prefix('.')):
-        sn = data.apply(shortname)
-        if not sn:
-            return False
-        ret += '.' + sn
-    return ret
-
-def shortname(data):
-    if not data.either(letter, digit):
-        return False
-    ret = data.last
-    while data.either(letter, digit, str_prefix('-')):
-        ret += data.last
-    if ret[-1] == '-':
-        return False
-    return ret
 
 def hostaddr(data):
     return data.either(ip4addr, ip6addr)
