@@ -247,9 +247,9 @@ crlf = sequence(cr, lf)
 # IRC / python-ircd specific rules
 ###
 soft_eol = either(
+    crlf,
     cr,
-    lf,
-    sequence(cr, lf)
+    lf
 )
 
 letter = alpha

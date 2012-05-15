@@ -1,3 +1,5 @@
+# coding=utf-8
+
 import unittest
 
 import abnf
@@ -117,6 +119,19 @@ class AbnfTest(unittest.TestCase):
         self.assertFalse(out2.has_key('prefix'))
         self.assertEqual('JOIN', out2['command'])
         self.assertEqual(['#a'], out2.captures)
+
+    def test_regr01(self):
+        """
+        Regression in 119da40fc8a2ddfb885d6687b7dddd90144d2995
+        Problem: Fails to parse \r\n terminated messages when soft_eol is on
+        Solution: try crlf first
+        """
+        config.soft_eol = True
+        reload(abnf)
+        out = abnf.parse('JOIN #a\r\n', abnf.message)
+        self.assertFalse(out.has_key('prefix'))
+        self.assertEqual('JOIN', out['command'])
+        self.assertEqual(['#a'], out.captures)
 
     def test_trailing_spaces_and_soft_eol(self):
         config.soft_eol = True
