@@ -2,6 +2,9 @@
 A DSL for building ABNF parsers, and IRC-specific parsers
 """
 
+import config
+
+
 class Error(Exception): pass
 
 
@@ -24,10 +27,14 @@ class ParseResult:
         self.captures = data.captures
         self.named_captures = data.named_captures
     def __getitem__(self, item):
+        if self.parsed is False:
+            return None
         if type(item) is int:
             return self.captures[item]
         return self.named_captures[item]
     def has_key(self, key):
+        if self.parsed is False:
+            return False
         return self.named_captures.has_key(key)
 
 
@@ -75,7 +82,7 @@ class sequence(parser):
     """
     def __init__(self, *args):
         parser.__init__(self)
-        self.rules = args
+        self.rules = list(args)
     def _parse(self, data):
         for f in self.rules:
             if f(data) is False:
@@ -96,7 +103,7 @@ class either(parser):
     """
     def __init__(self, *args):
         parser.__init__(self)
-        self.rules = args
+        self.rules = list(args)
     def _parse(self, data):
         for f in self.rules:
             if f(data):
@@ -395,3 +402,12 @@ channel = sequence(
     chanstring,
     maybe(string(':'), chanstring)
 )
+
+
+###
+# Make parsing less picky based on enabled config options
+###
+if config.traling_spaces:
+    message.rules.insert(-1, repeat(space))
+if config.soft_eol:
+    message.rules[-1] = soft_eol
