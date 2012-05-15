@@ -1,4 +1,6 @@
-# DSL for parsing ABNF and parsers for the IRC grammar
+"""
+A DSL for building ABNF parsers, and IRC-specific parsers
+"""
 
 class Error(Exception): pass
 
@@ -7,29 +9,44 @@ class ParserData:
     def __init__(self, str):
         self.original = str
         self.str = str
-        self.captured = []
+        self.captures = []
+        self.named_captures = {}
 
     def shift(self, n):
         ret = self.str[:n]
         self.str = self.str[n:]
         return ret
 
+
+class ParseResult:
+    def __init__(self, data):
+        self.parsed = data.original[:-len(data.str)] if len(data.str) > 0 else data.original
+        self.captures = data.captures
+        self.named_captures = data.named_captures
+    def __getitem__(self, item):
+        if type(item) is int:
+            return self.captures[item]
+        return self.named_captures[item]
+    def has_key(self, key):
+        return self.named_captures.has_key(key)
+
+
 def parse(str, parser, partial=False):
     """ Public API"""
     data = ParserData(str)
-    parsed = parser(data)
-    if not partial and len(data.str) > 0:
-        return False
-    if len(data.captured) > 0:
-        return data.captured
-    return parsed
+    retval = parser(data)
+    result = ParseResult(data)
+    if not retval or (not partial and len(data.str) > 0):
+        result.parsed = False
+        result.captures = False
+        result.named_captures = False
+    return result
+
 
 class parser(object):
     """
     Base class of all parsers
     """
-    def __init__(self, capture=False):
-        self.capture = capture
     def _parse(self, data):
         raise NotImplementedError()
     def processed(self):
@@ -38,23 +55,47 @@ class parser(object):
         return self.checkpoint[0][:-len(self.data.str)]
     def __call__(self, data):
         self.data = data
-        self.checkpoint = (data.str, data.captured[0:])
+        self.checkpoint = (data.str, data.captures[0:])
         retval = self._parse(data)
         if not retval:
-            (data.str, data.captured) = self.checkpoint
+            (data.str, data.captures) = self.checkpoint
             retval = False
         if retval is True:
             retval = self.processed()
-        if self.capture and retval:
-            self.data.captured.append(retval)
         return retval
 
 ###
-# Combinators
+# ABNF operators
 ###
+class sequence(parser):
+    """
+    Sequence group
+
+    Example: map_sector = sequence(digit, letter)
+    """
+    def __init__(self, *args):
+        parser.__init__(self)
+        self.rules = args
+    def _parse(self, data):
+        for f in self.rules:
+            if f(data) is False:
+                return False
+        return True
+    def __str__(self):
+        return ' '.join([str(r) for r in self.rules])
+
 class either(parser):
-    def __init__(self, *args, **kwargs):
-        parser.__init__(self, kwargs['capture'] if 'capture' in kwargs else False)
+    """
+    Alternatives
+
+    Note that the alternatives are tried in the order given to the constructor.
+    This means that the longest / least strict alternative should come first
+    (for appropriate values of "strict").
+
+    Example: alphanum = either(letter, digit)
+    """
+    def __init__(self, *args):
+        parser.__init__(self)
         self.rules = args
     def _parse(self, data):
         for f in self.rules:
@@ -64,9 +105,44 @@ class either(parser):
     def __str__(self):
         return '( ' + ' / '.join([str(r) for r in self.rules]) + ' )'
 
+class charclass(parser):
+    """
+    Value range
+
+    The constructor takes two integers: the min and the max values. Any
+    character with a character code as defined by `ord` between min and max
+    inclusive will be matched.
+
+    Example: lowercase = charclass(ord('a'), ord('z'))
+    """
+    def __init__(self, min, max):
+        parser.__init__(self)
+        self.min = min
+        self.max = max
+    def _parse(self, data):
+        c = data.shift(1)
+        if c == '':
+            return False
+        n = ord(c)
+        return self.min <= n <= self.max
+    def __str__(self):
+        return '%%x%s-%s' % (self.min, self.max)
+
 class repeat(parser):
-    def __init__(self, rule, min=0, max=float('inf'), **kwargs):
-        parser.__init__(self, kwargs['capture'] if 'capture' in kwargs else False)
+    """
+    Variable repetition
+
+    Applies `rule` at least `min`, at most `max` times. The default is to
+    apply it as many times as possible, but never fail (min=0, max=infinity)
+
+    Example: ip4_part = repeat(digit, 1, 3)
+
+    Specific repetition: if min == max, this acts and prints as specific repetition
+    Optional rule: if min == 0 and max == 1, this acts and prints as
+                   a single rule within an optional sequence
+    """
+    def __init__(self, rule, min=0, max=float('inf')):
+        parser.__init__(self)
         self.rule = rule
         self.min = min
         self.max = max
@@ -93,57 +169,88 @@ class repeat(parser):
                 ret += str(self.max)
         return ret + '( ' + str(self.rule) + ' )'
 
-class maybe(repeat):
-    def __init__(self, rule, **kwargs):
-        parser.__init__(self, kwargs['capture'] if 'capture' in kwargs else False)
-        self.rule = rule
-        self.min = 0
-        self.max = 1
 
-class sequence(parser):
-    def __init__(self, *args, **kwargs):
-        parser.__init__(self, kwargs['capture'] if 'capture' in kwargs else False)
-        self.rules = args
-    def _parse(self, data):
-        for f in self.rules:
-            if f(data) is False:
-                return False
-        return True
-    def __str__(self):
-        return ' '.join([str(r) for r in self.rules])
+def maybe(*args):
+    """
+    Optional sequence
+    """
+    return repeat(sequence(*args), 0, 1)
+
+
 ###
-# Grammar elements
+# Terminals
 ###
 class string(parser):
-    def __init__(self, string, **kwargs):
-        parser.__init__(self, kwargs['capture'] if 'capture' in kwargs else False)
+    """
+    A sequence of values given as a Python string
+    """
+    def __init__(self, string):
+        parser.__init__(self)
         self.string = string
     def _parse(self, data):
         return self.string == data.shift(len(self.string))
     def __str__(self):
         return '"%s"'%self.string
 
-class charclass(parser):
-    def __init__(self, min, max, **kwargs):
-        parser.__init__(self, kwargs['capture'] if 'capture' in kwargs else False)
-        self.min = min
-        self.max = max
-    def _parse(self, data):
-        c = data.shift(1)
-        if c == '':
-            return False
-        n = ord(c)
-        return self.min <= n <= self.max
-    def __str__(self):
-        return '%%x%s-%s' % (self.min, self.max)
+###
+# Helpers
+###
+class capture(sequence):
+    """
+    Capture sequence
+
+    Works the same as a sequence, but the matched string gets added to the
+    list of matched substrings
+    """
+    def __init__(self, *args, **kwargs):
+        sequence.__init__(self, *args)
+        self.name = kwargs['name'] if kwargs.has_key('name') else None
+    def __call__(self, data):
+        retval = sequence.__call__(self, data)
+        if retval:
+            if self.name is None:
+                self.data.captures.append(retval)
+            else:
+                self.data.named_captures[self.name] = retval
+        return retval
 
 ###
-# IRC-specific parsers
+# Some core rules
 ###
-letter = either(
-    charclass(0x41, 0x5A),
-    charclass(0x61, 0x7A)
+alpha = either(
+    charclass(0x41, 0x5A),  # a-z
+    charclass(0x61, 0x7A)   # A-Z
 )
+digit = charclass(0x30, 0x39)
+hexdigit = either(
+    digit,
+    string('A'),
+    string('B'),
+    string('C'),
+    string('D'),
+    string('E'),
+    string('F'),
+)
+space = string(' ')
+cr = string('\r')
+lf = string('\n')
+crlf = sequence(cr, lf)
+
+###
+# IRC / python-ircd specific rules
+###
+soft_eol = either(
+    cr,
+    lf,
+    sequence(cr, lf)
+)
+
+letter = alpha
+special = either(
+    charclass(0x5B, 0x60),
+    charclass(0x7B, 0x7D)
+)
+
 nospcrlfcl = either(
     charclass(0x01, 0x09),
     charclass(0x0B, 0x0C),
@@ -151,9 +258,8 @@ nospcrlfcl = either(
     charclass(0x21, 0x39),
     charclass(0x3B, 0xFF)
 )
-digit = charclass(0x30, 0x39)
-space = string(' ')
 
+# Used as part of hostname
 shortname = sequence(
     either(letter, digit),
     repeat(
@@ -163,6 +269,7 @@ shortname = sequence(
         either(letter, digit)
     )
 )
+
 hostname = sequence(
     shortname,
     repeat(sequence(
@@ -170,239 +277,121 @@ hostname = sequence(
     ))
 )
 
+# Used as part of params
 middle = sequence(
     nospcrlfcl,
-    repeat(either(string(':'), nospcrlfcl)),
-    capture=True
+    repeat(either(string(':'), nospcrlfcl))
 )
 
+# Used as part of params
 trailing = repeat(either(
     string(':'), string(' '), nospcrlfcl
-), capture=True)
+))
 
 params = either(
     sequence(
-        repeat(sequence(space, middle), 14, 14),
-        maybe(sequence(space, maybe(string(':')), trailing))
+        repeat(sequence(space, capture(middle)), 14, 14),
+        maybe(sequence(space, maybe(string(':')), capture(trailing)))
     ),
     sequence(
-        repeat(sequence(space, middle), 0, 14),
-        maybe(sequence(space, string(':'), trailing))
+        repeat(sequence(space, capture(middle)), 0, 14),
+        maybe(sequence(space, string(':'), capture(trailing)))
     )
 )
 
+servername = hostname
 
-####
-# Old parsers from here; these are now non-functional,
-# and will be rewritten to the above format
-###
-
-def message(data):
-    if data.apply(str_prefix(':')):
-        if not data.apply(prefix):
-            return False
-        ret['prefix'] = data.last
-        if not data.apply(space):
-            return False
-
-    ret['command'] = data.apply(command)
-    if not ret['command']:
-        return False
-
-    if data.apply(crlf):
-        return ret
-
-    ret['params'] = data.apply(params)
-
-    if ret['params'] == False or not data.apply(crlf):
-        return False
-
-    return ret
-
-def prefix(data):
-    ret = data.apply(servername)
-    if ret:
-        return ret
-    ret = {
-        'nickname': data.apply(nickname),
-        'user': None,
-        'host': None
-    }
-    if not ret['nickname']:
-        return False
-
-    if not data.apply(str_prefix('!')):
-        return ret
-
-    ret['user'] = data.apply(user)
-    if not ret['user']:
-        return False
-
-    if not data.apply(str_prefix('@')):
-        return ret
-
-    ret['host'] = data.apply(host)
-    if not ret['host']:
-        return False
-
-    return ret
-
-def command(data):
-    if data.repeat(letter):
-        return data.last
-    elif not data.repeat(digit, 3, 3):
-        return False
-    return data.last
-
-def space(data):
-    if data.shift(1) == ' ':
-        return ' '
-    return False
-
-def crlf(data):
-    return data.shift(2) == '\r\n'
-
-def userchar(data):
-    return char_inrange(data,
-        (0x01, 0x09),
-        (0x0B, 0x0C),
-        (0x0E, 0x1F),
-        (0x21, 0x3F),
-        (0x41, 0xFF)
+ip4addr = sequence(
+    repeat(digit, 1, 3),
+    string('.'),
+    repeat(digit, 1, 3),
+    string('.'),
+    repeat(digit, 1, 3),
+    string('.'),
+    repeat(digit, 1, 3)
+)
+ip6addr = either(
+    sequence(
+        string('0:0:0:0:0:'),
+        either(string('0'), string('FFFF')),
+        string(':'),
+        ip4addr
+    ),
+    sequence(
+        repeat(hexdigit, 1),
+        repeat(
+            sequence(string(':'), repeat(hexdigit, 1)),
+            7, 7
+        )
     )
-def user(data):
-    return data.repeat(userchar, 1)
+)
+hostaddr = either(ip4addr, ip6addr)
 
-def letter(data):
-    return char_inrange(data,
-        (0x41, 0x5A),
-        (0x61, 0x7A)
+host = either(hostname, hostaddr)
+
+user = repeat(
+    either(
+        charclass(0x01, 0x09),
+        charclass(0x0B, 0x0C),
+        charclass(0x0E, 0x1F),
+        charclass(0x21, 0x3F),
+        charclass(0x41, 0xFF)
+    ), 1 # to infinity
+)
+
+nickname = sequence(
+    either(letter, special),
+    repeat(either(letter, digit, special, string('-')), 0, 8)
+)
+
+# Used as part of message
+prefix = either(
+    servername,
+    sequence(nickname,
+        maybe(
+            maybe(string('!'), user),
+            string('@'),
+            host
+        )
     )
+)
 
-def hexdigit(data):
-    return data.either(
-        digit,
-        str_prefix('A'),
-        str_prefix('B'),
-        str_prefix('C'),
-        str_prefix('D'),
-        str_prefix('E'),
-        str_prefix('F'),
-    )
+# Used as part of message
+command = either(
+    repeat(letter, 1),
+    repeat(digit, 3, 3)
+)
 
-def special(data):
-    return char_inrange(data,
-        (0x5B, 0x60),
-        (0x7B, 0x7D)
-    )
+message = sequence(
+    maybe(string(':'), capture(prefix, name='prefix'), space),
+    capture(command, name='command'),
+    maybe(params),
+    crlf
+)
 
-def nickname(data):
-    if not data.either(letter, special):
-        return False
-    nickname = data.last
+chanstring = either(
+    charclass(0x01, 0x07),
+    charclass(0x08, 0x09),
+    charclass(0x0B, 0x0C),
+    charclass(0x0E, 0x1F),
+    charclass(0x21, 0x2B),
+    charclass(0x2D, 0x39),
+    charclass(0x3B, 0xFF)
+)
+channelid = repeat(
+    either(
+        charclass(0x41, 0x5A),
+        digit
+    ), 5, 5
+)
 
-    i = 0
-    while i < 8 and data.either(letter, digit, special, str_prefix('-')):
-        nickname += data.last
-
-    return nickname
-
-def channel(data):
-    ret = {
-        'prefix': None,
-        'id': None,
-        'name': None,
-        'mask': None
-    }
-    if data.either(*[str_prefix(c) for c in ['#', '+', '&', '!']]):
-        ret['prefix'] = data.last
-    else:
-        return False
-
-    if ret['prefix'] == '!':
-        if data.apply(channelid):
-            ret['id'] = data.last
-        else:
-            return False
-
-    if not data.repeat(chanstring, 1, 50):
-        return False
-    ret['name'] = data.last
-
-    if data.apply(str_prefix(':')):
-        if not data.repeat(chanstring):
-            return False
-        ret['mask'] = data.last
-
-    return ret
-
-def chanstring(data):
-    return char_inrange(data,
-        (0x01, 0x07),
-        (0x08, 0x09),
-        (0x0B, 0x0C),
-        (0x0E, 0x1F),
-        (0x21, 0x2B),
-        (0x2D, 0x39),
-        (0x3B, 0xFF)
-    )
-
-def channelid_char(data):
-    return char_inrange(data,
-        (0x41, 0x5A),  # A-Z
-        (0x30, 0x39)   # 0-0
-    )
-def channelid(data):
-    return data.repeat(channelid_char, 5, 5)
-
-
-def servername(data):
-    return hostname(data)
-
-def host(data):
-    return data.either(hostname, hostaddr)
-
-
-def hostaddr(data):
-    return data.either(ip4addr, ip6addr)
-
-def ip4addr(data):
-    ret = ''
-
-    for i in range(4):
-        if not data.repeat(digit, 1, 3):
-            return False
-        ret += data.last
-        if i < 3:
-            if not data.apply(str_prefix('.')):
-                return False
-            ret += '.'
-
-    return ret
-
-def ip6_real(data):
-    if not data.repeat(hexdigit, 1):
-        return False
-    ret = data.last
-    for i in range(7):
-        if not data.apply(str_prefix(':')):
-            return False
-        ret += ':'
-        if not data.repeat(hexdigit, 1):
-            return False
-        ret += data.last
-
-def ip6_wrap(data):
-    if not data.repeat(str_prefix('0:'),5):
-        return False
-    ret = data.last
-    if not data.either(str_prefix('0:'), str_prefix('FFFF:')):
-        return False
-    ret += data.last
-    if not data.apply(ip4addr):
-        return False
-    ret += data.last
-    return ret
-
-def ip6addr(data):
-    return data.either(ip6_real, ip6_wrap)
+channel = sequence(
+    either(
+        string('#'),
+        string('+'),
+        sequence(string('!'), channelid),
+        string('&')
+    ),
+    chanstring,
+    maybe(string(':'), chanstring)
+)

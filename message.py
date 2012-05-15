@@ -48,7 +48,12 @@ def from_string(str):
     if len(str) > 512:
         raise Error('Message must not be longer than 512 characters')
     raw = abnf.parse(str, abnf.message)
-    if not raw:
+    if not raw.parsed:
         raise Error('Failed to parse message: ' + str)
-    return Message(None, raw['prefix'], raw['command'], *raw['params'])
+    return Message(
+        None,
+        raw['prefix'] if raw.has_key('prefix') else None,
+        raw['command'],
+        *raw
+    )
 
