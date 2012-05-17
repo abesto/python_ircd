@@ -15,8 +15,6 @@ def send(message):
 
     targets = set()
     for message in messages:
-        if isinstance(message, str) and message == 'disconnect':
-            continue
         if message.prefix is None:
             message.prefix = config.servername
         if isinstance(message.target, type([])):
