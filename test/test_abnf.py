@@ -142,3 +142,9 @@ class AbnfTest(unittest.TestCase):
         self.assertEqual('JOIN', out['command'])
         self.assertEqual(['#a'], out.captures)
 
+
+    def test_channel(self):
+        out = abnf.parse('#foo', abnf.channel)
+        self.assertEqual('#foo', out.parsed)
+        self.assertEqual('#', out['prefix'])
+        self.assertEqual('foo', out['name'])

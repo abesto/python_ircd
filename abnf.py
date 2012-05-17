@@ -10,20 +10,20 @@ class Error(Exception): pass
 
 class ParserData:
     def __init__(self, str):
-        self.original = str
         self.str = str
+        self.pos = 0
         self.captures = []
         self.named_captures = {}
 
     def shift(self, n):
-        ret = self.str[:n]
-        self.str = self.str[n:]
+        ret = self.str[self.pos:self.pos+n]
+        self.pos += n
         return ret
 
 
 class ParseResult:
     def __init__(self, data):
-        self.parsed = data.original[:-len(data.str)] if len(data.str) > 0 else data.original
+        self.parsed = data.str[:data.pos]
         self.captures = data.captures
         self.named_captures = data.named_captures
     def __getitem__(self, item):
@@ -43,7 +43,7 @@ def parse(str, parser, partial=False):
     data = ParserData(str)
     retval = parser(data)
     result = ParseResult(data)
-    if not retval or (not partial and len(data.str) > 0):
+    if not retval or (not partial and data.pos < len(data.str)):
         result.parsed = False
         result.captures = False
         result.named_captures = False
@@ -57,15 +57,13 @@ class parser(object):
     def _parse(self, data):
         raise NotImplementedError()
     def processed(self):
-        if self.data.str == '':
-            return self.checkpoint[0]
-        return self.checkpoint[0][:-len(self.data.str)]
+        return self.data.str[self.checkpoint[0]:self.data.pos]
     def __call__(self, data):
         self.data = data
-        self.checkpoint = (data.str, data.captures[0:])
+        self.checkpoint = (data.pos, list(data.captures), dict(data.named_captures))
         retval = self._parse(data)
         if not retval:
-            (data.str, data.captures) = self.checkpoint
+            (data.pos, data.captures, data.named_captures) = self.checkpoint
             retval = False
         if retval is True:
             retval = self.processed()
@@ -394,13 +392,18 @@ channelid = repeat(
 
 channel = sequence(
     either(
-        string('#'),
-        string('+'),
-        sequence(string('!'), channelid),
-        string('&')
+        capture(either(
+            string('#'),
+            string('+'),
+            string('&')
+        ), name='prefix'),
+        sequence(
+            capture(string('!'), name='prefix'),
+            capture(channelid, name='id')
+        )
     ),
-    chanstring,
-    maybe(string(':'), chanstring)
+    capture(repeat(chanstring, 1), name='name'),
+    maybe(string(':'), capture(repeat(chanstring, 1), name='modeflag'))
 )
 
 
