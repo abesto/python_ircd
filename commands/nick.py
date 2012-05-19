@@ -35,9 +35,14 @@ class NickCommand(Command):
         # New login, no collision
         if from_nick is None:
             self.user.registered.nick = True
-            return
+            self.user.nickname = to_nick
+            if self.user.registered.both:
+                db.registered(self.user)
+                # TODO: rest of the welcome messages
+                return welcome(self.user)
+                #TODO: send NICK and USER to other servers
 
-        # Rename before registration is complete, likely because the originally requested nick was already used
+        # NICK before registration is complete, likely because the originally requested nick was already used
         if not self.user.registered.nick:
             rename = M(self.user, from_nick, 'NICK', to_nick)
             self.user.nickname = to_nick
