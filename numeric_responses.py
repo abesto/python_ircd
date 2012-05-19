@@ -2,14 +2,36 @@ import config
 from message import Message as M
 
 def touser(user, num, *args):
-    return M(user, None, num, user.nickname, *args)
+    return M(user, config.servername, num, user.nickname, *args)
 
 def RPL_WELCOME(user):
     return touser(user,  '001', 'Welcome to the Internet Relay Network %s' % str(user))
 def RPL_YOURHOST(user):
-    return touser(user, '002', 'Your host is %s running an experimental server written by abesto' % config.servername)
+    return touser(user, '002', 'Your host is %s running an experimental server' % config.servername)
 def RPL_CREATED(user):
     return touser(user,  '003', 'This server was created %s' % config.created)
+
+def RPL_WHOREPLY(target, user, mask):
+    # H = Here
+    # G = Away
+    # * = IRCOp
+    # @ = Channel Op
+    # + = Voiced
+    return touser(target, '352', mask, user.username, user.hostname, config.servername, user.nickname,
+        # TODO: more flags, if needed
+        'G' if user.away else 'H', '0 ' + user.realname
+    )
+def RPL_ENDOFWHO(target, mask):
+    return touser(target, '315', mask, 'End of WHO list')
+
+def RPL_NAMEREPLY(user, channel):
+    # TODO: choose prefix based on channel mode
+    prefix = '='
+    # TODO: add user prefix if needed
+    nicks = ' '.join(channel_user.nickname for channel_user in channel.users)
+    return touser(user, '353', prefix, str(channel), nicks)
+def RPL_ENDOFNAMES(user):
+    return touser(user, '366', 'End of NAMES list')
 
 def RPL_MOTDSTART(user):
     return touser(user, '375', '- %s Message of the day - ' % config.servername)

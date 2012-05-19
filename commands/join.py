@@ -22,6 +22,8 @@ class JoinCommand(Command):
                 channel = db.get_channel(channel_name)
                 channel.join(self.user)
                 ret.append(M(channel.users, self.user, 'JOIN', str(channel)))
+                ret.append(RPL_NAMEREPLY(self.user, channel))
+                ret.append(RPL_ENDOFNAMES(self.user))
             except db.Error:
                 ret.append(ERR_NOSUCHCHANNEL(channel_name, self.user))
 

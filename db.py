@@ -46,6 +46,7 @@ class User(object):
         self.registered = RegistrationStatus()
 
         self.mode = UserMode()
+        self.away = False
 
 
     def write(self, message):
