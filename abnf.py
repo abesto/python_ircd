@@ -88,6 +88,8 @@ class sequence(parser):
         return True
     def __str__(self):
         return ' '.join([str(r) for r in self.rules])
+    def __len__(self):
+        return sum([len(r) for r in self.rules])
 
 class either(parser):
     """
@@ -99,9 +101,22 @@ class either(parser):
 
     Example: alphanum = either(letter, digit)
     """
+    @staticmethod
+    def lencmp(a,b):
+        a = len(a)
+        b = len(b)
+        if a == b:
+            return 0
+        if a == 0:
+            return -1
+        if b == 0:
+            return 1
+        return b - a
+
     def __init__(self, *args):
         parser.__init__(self)
         self.rules = list(args)
+        self.rules.sort(self.lencmp)
     def _parse(self, data):
         for f in self.rules:
             if f(data):
@@ -109,6 +124,8 @@ class either(parser):
         return False
     def __str__(self):
         return '( ' + ' / '.join([str(r) for r in self.rules]) + ' )'
+    def __len__(self):
+        return max([len(r) for r in self.rules])
 
 class charclass(parser):
     """
@@ -132,6 +149,8 @@ class charclass(parser):
         return self.min <= n <= self.max
     def __str__(self):
         return '%%x%s-%s' % (self.min, self.max)
+    def __len__(self):
+        return 1
 
 class repeat(parser):
     """
@@ -173,6 +192,10 @@ class repeat(parser):
             if self.max < float('inf'):
                 ret += str(self.max)
         return ret + '( ' + str(self.rule) + ' )'
+    def __len__(self):
+        if self.max == float('inf'):
+            return 0
+        return self.max * len(self.rule)
 
 
 def maybe(*args):
@@ -196,6 +219,8 @@ class string(parser):
         return self.string == data.shift(len(self.string))
     def __str__(self):
         return '"%s"'%self.string
+    def __len__(self):
+        return len(self.string)
 
 ###
 # Helpers
@@ -245,9 +270,9 @@ crlf = sequence(cr, lf)
 # IRC / python-ircd specific rules
 ###
 soft_eol = either(
-    crlf,
     cr,
-    lf
+    lf,
+    crlf
 )
 
 letter = alpha
