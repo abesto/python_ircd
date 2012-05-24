@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 
 import logging
-log = logging.getLogger(__name__)
+log = logging.getLogger()
 log.setLevel(logging.DEBUG)
-log.addHandler(logging.StreamHandler())
+handler = logging.StreamHandler()
+handler.setFormatter(logging.Formatter('[%(asctime)s] %(name)s:%(levelname)s\t%(message)s'))
+log.addHandler(handler)
 
 import gevent
 import gevent.server
@@ -22,15 +24,14 @@ def handle(socket, address):
     disconnect = False
     while not disconnect:
         line = fileobj.readline()
-        log.debug('In:  %s -> %s' % (repr(socket.client), repr(line)))
         try:
             msg = message.from_string(line)
+            log.debug('<= %s %s (raw: %s)' % (repr(socket.client), repr(msg), repr(line)))
             resp = dispatcher.dispatch(socket, msg)
             if resp is None:
                 continue
             if type(resp) is not list:
                 resp = [resp]
-            log.debug('Out: %s' % repr(resp))
             if 'disconnect' in resp:
                 resp.remove('disconnect')
                 disconnect = True
@@ -43,5 +44,8 @@ def handle(socket, address):
         pass
     socket.close()
 
+log.info('Starting server, listening on %s:%s' % (config.listen_host, config.listen_port))
 server = gevent.server.StreamServer((config.listen_host, config.listen_port), handle)
 server.serve_forever()
+log.info('Server stopped')
+

@@ -31,8 +31,6 @@ class Message(object):
 
     def __repr__(self):
         ret = "'" + str(self)[:-2] + "'"
-        if self.target is not None:
-            ret += ' -> %s' % self.target
         return ret
 
     def __eq__(self, other):

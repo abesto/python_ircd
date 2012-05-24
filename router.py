@@ -1,3 +1,6 @@
+import logging
+log = logging.getLogger(__name__)
+
 import config
 import db
 
@@ -30,6 +33,7 @@ def send(message):
                 message.parameters.insert(0, target.nickname)
             targets.add(target)
             target.write(message)
+            log.debug('=> %s %s' % (repr(target), repr(message)))
             # And remove the nick after we've sent the message
             if message.add_nick and isinstance(target, db.User):
                 message.parameters = message.parameters[1:]

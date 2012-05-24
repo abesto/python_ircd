@@ -17,6 +17,7 @@ def register(command):
         raise Error('Command mismatch. Incoming command: %s. Handler command: %s.' % (command, handler.command))
     handlers[handler.command] = handler
 
+
 def dispatch(socket, message):
     message.target = config.servername
     if not handlers.has_key(message.command):
