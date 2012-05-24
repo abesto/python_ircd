@@ -20,9 +20,6 @@ def handle(socket, address):
         print 'In:  %s -> %s' % (repr(socket.client), repr(line))
         try:
             msg = message.from_string(line)
-        except message.Error, e:
-            print e.message
-        else:
             resp = dispatcher.dispatch(socket, msg)
             if resp is None:
                 continue
@@ -33,6 +30,8 @@ def handle(socket, address):
                 resp.remove('disconnect')
                 disconnect = True
             router.send(resp)
+        except Exception, e:
+            print 'Error: ' + e.message
     try:
         socket.shutdown(gevent.socket.SHUT_RDWR)
     except:
