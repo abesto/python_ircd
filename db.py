@@ -89,6 +89,7 @@ class Channel(object):
         self.prefix = raw['prefix']
 
         self.users = []
+        self.topic = None
 
     def __str__(self):
         return self.prefix + self.name
