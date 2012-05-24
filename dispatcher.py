@@ -1,4 +1,6 @@
 import importlib
+import logging
+log = logging.getLogger(__name__)
 import config
 
 
@@ -21,7 +23,7 @@ def dispatch(socket, message):
         try:
             register(message.command)
         except ImportError:
-            print 'Unknown command %s. Message was: %s' % (message.command, repr(message))
+            log.warning('Unknown command %s. Message was: %s' % (message.command, repr(message)))
             return
     return handlers[message.command].handle(socket, message)
 

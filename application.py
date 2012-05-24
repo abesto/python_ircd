@@ -1,5 +1,10 @@
 # -*- coding: utf-8 -*-
 
+import logging
+log = logging.getLogger(__name__)
+log.setLevel(logging.DEBUG)
+log.addHandler(logging.StreamHandler())
+
 import gevent
 import gevent.server
 import gevent.monkey
@@ -17,7 +22,7 @@ def handle(socket, address):
     disconnect = False
     while not disconnect:
         line = fileobj.readline()
-        print 'In:  %s -> %s' % (repr(socket.client), repr(line))
+        log.debug('In:  %s -> %s' % (repr(socket.client), repr(line)))
         try:
             msg = message.from_string(line)
             resp = dispatcher.dispatch(socket, msg)
@@ -25,13 +30,13 @@ def handle(socket, address):
                 continue
             if type(resp) is not list:
                 resp = [resp]
-            print 'Out: %s' % repr(resp)
+            log.debug('Out: %s' % repr(resp))
             if 'disconnect' in resp:
                 resp.remove('disconnect')
                 disconnect = True
             router.send(resp)
         except Exception, e:
-            print 'Error: ' + e.message
+            log.exception(e)
     try:
         socket.shutdown(gevent.socket.SHUT_RDWR)
     except:
