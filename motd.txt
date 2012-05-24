@@ -1,5 +1,5 @@
 
-Currently supported commands: NICK, USER, JOIN, PRIVMSG, PING, QUIT
+Currently supported commands: NICK, USER, JOIN, PRIVMSG, PING, WHO #channel, TOPIC, QUIT
 
 See the project page on GitHub for detailed status information:
 https://github.com/abesto/python-ircd
