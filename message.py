@@ -9,7 +9,7 @@ class Message(object):
     def __init__(self, target, command, *parameters, **kwargs):
         self.prefix = kwargs['prefix'] if kwargs.has_key('prefix') else None
         self.command = command
-        self.parameters = list(parameters)
+        self.parameters = filter(lambda x: x is not None, list(parameters))
         self.target = target
         self.add_nick = kwargs['add_nick'] if kwargs.has_key('add_nick') else False
 
