@@ -1,3 +1,4 @@
+import config
 import abnf
 
 
@@ -53,7 +54,7 @@ def from_string(str):
     return Message(
         None,
         raw['prefix'] if raw.has_key('prefix') else None,
-        raw['command'],
+        raw['command'].upper() if config.lowercase_commands else raw['command'],
         *raw
     )
 
