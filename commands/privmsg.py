@@ -1,6 +1,6 @@
 from commands.base import Command
-from message import Message as M
 from numeric_responses import *
+from message import Message as M
 import db
 
 
@@ -18,7 +18,7 @@ class PrivmsgCommand(Command):
         for receiver in receivers.split(','):
             if db.channel_exists(receiver):
                 users = [user for user in db.get_channel(receiver).users if user is not self.user]
-                resp.append(M(users, self.user, self.command, receiver, text))
+                resp.append(M(users, self.command, receiver, text, prefix=self.user))
             elif db.user_exists(receiver):
                 resp.append(M(db.get_user(receiver), self.user.nickname, self.command, receiver, text))
             # TODO: Implement wildcards, check for ERR_WILDTOPLEVEL, RPL_AWAY, ERR_NOTOPLEVEL

@@ -36,5 +36,6 @@ class Command(object):
             return self.handle_from_server(*message.parameters)
         else:
             self.user = socket.client
+            message.prefix = str(self.user)
             return self.from_client(*message.parameters)
 

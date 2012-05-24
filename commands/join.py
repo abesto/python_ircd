@@ -1,6 +1,6 @@
 from commands.base import Command
-from message import Message as M
 from numeric_responses import *
+from message import Message as M
 import db
 
 class JoinCommand(Command):
@@ -21,7 +21,7 @@ class JoinCommand(Command):
             try:
                 channel = db.get_channel(channel_name)
                 channel.join(self.user)
-                ret.append(M(channel.users, self.user, 'JOIN', str(channel)))
+                ret.append(M(channel.users,'JOIN', str(channel), prefix=self.user))
                 ret.append(RPL_NAMEREPLY(self.user, channel))
                 ret.append(RPL_ENDOFNAMES(self.user))
             except db.Error:

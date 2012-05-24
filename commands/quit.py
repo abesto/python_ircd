@@ -8,4 +8,4 @@ class QuitCommand(Command):
 
     def from_client(self, message=None):
         db.disconnected(self.user.nickname)
-        return [M(self.user, None, 'ERROR'), 'disconnect']
+        return [M(self.user, 'ERROR'), 'disconnect']

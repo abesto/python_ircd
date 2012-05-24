@@ -6,11 +6,12 @@ class Error(Exception): pass
 
 
 class Message(object):
-    def __init__(self, target=None, prefix=None, command=None, *parameters):
-        self.prefix = prefix
+    def __init__(self, target, command, *parameters, **kwargs):
+        self.prefix = kwargs['prefix'] if kwargs.has_key('prefix') else None
         self.command = command
-        self.parameters = parameters
+        self.parameters = list(parameters)
         self.target = target
+        self.add_nick = kwargs['add_nick'] if kwargs.has_key('add_nick') else False
 
     def __str__(self):
         ret = ''
@@ -51,10 +52,12 @@ def from_string(str):
     raw = abnf.parse(str, abnf.message)
     if not raw.parsed:
         raise Error('Failed to parse message: ' + str)
-    return Message(
+    msg = Message(
         None,
-        raw['prefix'] if raw.has_key('prefix') else None,
         raw['command'].upper() if config.lowercase_commands else raw['command'],
         *raw
     )
+    if raw.has_key('prefix'):
+        msg.prefix = raw['prefix']
+    return msg
 
