@@ -2,10 +2,6 @@
 
 import logging
 log = logging.getLogger()
-log.setLevel(logging.DEBUG)
-handler = logging.StreamHandler()
-handler.setFormatter(logging.Formatter('[%(asctime)s] %(name)s:%(levelname)s\t%(message)s'))
-log.addHandler(handler)
 
 import gevent
 import gevent.server
