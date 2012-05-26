@@ -44,7 +44,7 @@ class NickCommand(Command):
 
         # NICK before registration is complete, likely because the originally requested nick was already used
         if not self.user.registered.nick:
-            rename = M(self.user, from_nick, 'NICK', to_nick)
+            rename = M(self.user, 'NICK', to_nick, prefix=from_nick)
             self.user.nickname = to_nick
             self.user.registered.nick = True
             # USER command has already been received, complete registration
