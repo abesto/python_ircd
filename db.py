@@ -81,12 +81,12 @@ class ChannelMode(object):
 class Channel(object):
     def __init__(self, name):
         raw = abnf.parse(name, abnf.channel)
-        if not raw.parsed:
+        if not raw:
             raise Error('Erroneous channel name')
-        self.name = raw['name']
         self.mode = ChannelMode
-        self.id = raw['id'] if raw.has_key('id') else None
-        self.prefix = raw['prefix']
+        self.prefix = raw[0]
+        self.id = raw[1] if self.prefix == '!' else None
+        self.name = raw[2] if self.prefix == '!' else raw[1]
 
         self.users = []
         self.topic = None

@@ -1,441 +1,133 @@
-"""
-A DSL for building ABNF parsers, and IRC-specific parsers
-"""
-
 import config
+from pyparsing import ParseException, oneOf, Suppress, Literal, Or, ZeroOrMore, Group, Optional, OneOrMore, And
 
 
-class Error(Exception): pass
-
-
-class ParserData:
-    def __init__(self, str):
-        self.str = str
-        self.pos = 0
-        self.captures = []
-        self.named_captures = {}
-
-    def shift(self, n):
-        ret = self.str[self.pos:self.pos+n]
-        self.pos += n
-        return ret
-
-
-class ParseResult:
-    def __init__(self, data):
-        self.parsed = data.str[:data.pos]
-        self.captures = data.captures
-        self.named_captures = data.named_captures
-    def __getitem__(self, item):
-        if self.parsed is False:
-            return None
-        if type(item) is int:
-            return self.captures[item]
-        return self.named_captures[item]
-    def has_key(self, key):
-        if self.parsed is False:
-            return False
-        return self.named_captures.has_key(key)
-
-
-def parse(str, parser, partial=False):
-    """ Public API"""
-    data = ParserData(str)
-    retval = parser(data)
-    result = ParseResult(data)
-    if not retval or (not partial and data.pos < len(data.str)):
-        result.parsed = False
-        result.captures = False
-        result.named_captures = False
-    return result
-
-
-class parser(object):
-    """
-    Base class of all parsers
-    """
-    def _parse(self, data):
-        raise NotImplementedError()
-    def processed(self):
-        return self.data.str[self.checkpoint[0]:self.data.pos]
-    def __call__(self, data):
-        self.data = data
-        self.checkpoint = (data.pos, list(data.captures), dict(data.named_captures))
-        retval = self._parse(data)
-        if not retval:
-            (data.pos, data.captures, data.named_captures) = self.checkpoint
-            retval = False
-        if retval is True:
-            retval = self.processed()
-        return retval
-
-###
-# ABNF operators
-###
-class sequence(parser):
-    """
-    Sequence group
-
-    Example: map_sector = sequence(digit, letter)
-    """
-    def __init__(self, *args):
-        parser.__init__(self)
-        self.rules = list(args)
-    def _parse(self, data):
-        for f in self.rules:
-            if f(data) is False:
-                return False
-        return True
-    def __str__(self):
-        return ' '.join([str(r) for r in self.rules])
-    def __len__(self):
-        return sum([len(r) for r in self.rules])
-
-class either(parser):
-    """
-    Alternatives
-
-    Note that the alternatives are tried in the order given to the constructor.
-    This means that the longest / least strict alternative should come first
-    (for appropriate values of "strict").
-
-    Example: alphanum = either(letter, digit)
-    """
-    @staticmethod
-    def lencmp(a,b):
-        a = len(a)
-        b = len(b)
-        if a == b:
-            return 0
-        if a == 0:
-            return -1
-        if b == 0:
-            return 1
-        return b - a
-
-    def __init__(self, *args):
-        parser.__init__(self)
-        self.rules = list(args)
-        self.rules.sort(self.lencmp)
-    def _parse(self, data):
-        for f in self.rules:
-            if f(data):
-                return self.processed()
-        return False
-    def __str__(self):
-        return '( ' + ' / '.join([str(r) for r in self.rules]) + ' )'
-    def __len__(self):
-        return max([len(r) for r in self.rules])
-
-class charclass(parser):
-    """
-    Value range
-
-    The constructor takes two integers: the min and the max values. Any
-    character with a character code as defined by `ord` between min and max
-    inclusive will be matched.
-
-    Example: lowercase = charclass(ord('a'), ord('z'))
-    """
-    def __init__(self, min, max):
-        parser.__init__(self)
-        self.min = min
-        self.max = max
-    def _parse(self, data):
-        c = data.shift(1)
-        if c == '':
-            return False
-        n = ord(c)
-        return self.min <= n <= self.max
-    def __str__(self):
-        return '%%x%s-%s' % (self.min, self.max)
-    def __len__(self):
-        return 1
-
-class repeat(parser):
-    """
-    Variable repetition
-
-    Applies `rule` at least `min`, at most `max` times. The default is to
-    apply it as many times as possible, but never fail (min=0, max=infinity)
-
-    Example: ip4_part = repeat(digit, 1, 3)
-
-    Specific repetition: if min == max, this acts and prints as specific repetition
-    Optional rule: if min == 0 and max == 1, this acts and prints as
-                   a single rule within an optional sequence
-    """
-    def __init__(self, rule, min=0, max=float('inf')):
-        parser.__init__(self)
-        self.rule = rule
-        self.min = min
-        self.max = max
-    def _parse(self, data):
-        i = 0
-        while i < self.min and self.rule(data):
-            i += 1
-        if i < self.min:
-            return False
-        while i < self.max and self.rule(data):
-            i += 1
-        return i <= self.max
-    def __str__(self):
-        if self.min == 0 and self.max == 1:
-            return '[ ' + str(self.rule) + ' ]'
-        ret = ''
-        if self.min == self.max:
-            ret += str(self.min)
+def flatten(L):
+    if not isinstance(L,list):
+        return L
+    ret = []
+    for i in L:
+        if isinstance(i,list):
+            ret.extend(flatten(i))
         else:
-            if self.min > 0:
-                ret += str(self.min)
-            ret += '*'
-            if self.max < float('inf'):
-                ret += str(self.max)
-        return ret + '( ' + str(self.rule) + ' )'
-    def __len__(self):
-        if self.max == float('inf'):
-            return 0
-        return self.max * len(self.rule)
+            ret.append(i)
+    return ret
+
+def half_flatten(l):
+    if all([type(x) is str for x in l]):
+        return ''.join(l)
+    return [half_flatten(x) for x in l]
 
 
-def maybe(*args):
-    """
-    Optional sequence
-    """
-    return repeat(sequence(*args), 0, 1)
+def parse(str, parser):
+    """ Public API"""
+    try:
+        return flatten(half_flatten(parser.parseString(str, True)))
+    except ParseException:
+        return False
 
-
-###
-# Terminals
-###
-class string(parser):
-    """
-    A sequence of values given as a Python string
-    """
-    def __init__(self, string):
-        parser.__init__(self)
-        self.string = string
-    def _parse(self, data):
-        return self.string == data.shift(len(self.string))
-    def __str__(self):
-        return '"%s"'%self.string
-    def __len__(self):
-        return len(self.string)
-
-###
-# Helpers
-###
-class capture(sequence):
-    """
-    Capture sequence
-
-    Works the same as a sequence, but the matched string gets added to the
-    list of matched substrings
-    """
-    def __init__(self, *args, **kwargs):
-        sequence.__init__(self, *args)
-        self.name = kwargs['name'] if kwargs.has_key('name') else None
-    def __call__(self, data):
-        retval = sequence.__call__(self, data)
-        if retval:
-            if self.name is None:
-                self.data.captures.append(retval)
-            else:
-                self.data.named_captures[self.name] = retval
-        return retval
+# Helper; similar to srange applied to [a-b]
+def charclass(a, b): return oneOf([chr(i) for i in range(a,b+1)])
 
 ###
 # Some core rules
 ###
-alpha = either(
-    charclass(0x41, 0x5A),  # a-z
-    charclass(0x61, 0x7A)   # A-Z
-)
+alpha = charclass(0x41, 0x5A) ^ charclass(0x61, 0x7A)
 digit = charclass(0x30, 0x39)
-hexdigit = either(
-    digit,
-    string('A'),
-    string('B'),
-    string('C'),
-    string('D'),
-    string('E'),
-    string('F'),
-)
-space = string(' ')
-cr = string('\r')
-lf = string('\n')
-crlf = sequence(cr, lf)
+hexdigit = digit ^ oneOf('A B C D E F')
+space = Suppress(Literal(' '))
+cr = Suppress(Literal('\r'))
+lf = Suppress(Literal('\n'))
+crlf = cr + lf
 
 ###
 # IRC / python-ircd specific rules
 ###
-soft_eol = either(
-    cr,
-    lf,
-    crlf
-)
+soft_eol = cr ^ lf ^ crlf
 
 letter = alpha
-special = either(
-    charclass(0x5B, 0x60),
-    charclass(0x7B, 0x7D)
-)
+special = charclass(0x5B, 0x60) ^ charclass(0x7B, 0x7D)
 
-nospcrlfcl = either(
+nospcrlfcl = Or([
     charclass(0x01, 0x09),
     charclass(0x0B, 0x0C),
     charclass(0x0E, 0x1F),
     charclass(0x21, 0x39),
     charclass(0x3B, 0xFF)
-)
+])
 
 # Used as part of hostname
-shortname = sequence(
-    either(letter, digit),
-    repeat(
-        either(letter, digit, string('-'))
-    ),
-    repeat(
-        either(letter, digit)
-    )
-)
+shortname = (letter ^ digit) + \
+            ZeroOrMore(letter ^ digit ^ Literal('-')) + \
+            ZeroOrMore(letter ^ digit)
 
-hostname = sequence(
-    shortname,
-    repeat(sequence(
-        string('.'), shortname
-    ))
-)
+hostname = shortname + ZeroOrMore(Literal('.') + shortname)
 
 # Used as part of params
-middle = sequence(
-    nospcrlfcl,
-    repeat(either(string(':'), nospcrlfcl))
-)
+middle = Group(nospcrlfcl + ZeroOrMore(Literal(':') ^ nospcrlfcl))
 
 # Used as part of params
-trailing = repeat(either(
-    string(':'), string(' '), nospcrlfcl
-))
+trailing = Group(ZeroOrMore(oneOf([':', ' ']) ^ nospcrlfcl))
 
-params = either(
-    sequence(
-        repeat(sequence(space, capture(middle)), 14, 14),
-        maybe(sequence(space, maybe(string(':')), capture(trailing)))
-    ),
-    sequence(
-        repeat(sequence(space, capture(middle)), 0, 14),
-        maybe(sequence(space, string(':'), capture(trailing)))
-    )
-)
+params = (((0,14)*(space + middle)) + Optional(space + Suppress(Literal(':')) + trailing)) ^ \
+         (14*(space + middle) + Optional(space + Optional(Suppress(Literal(':'))) + trailing))
+params.leaveWhitespace()
 
 servername = hostname
 
-ip4addr = sequence(
-    repeat(digit, 1, 3),
-    string('.'),
-    repeat(digit, 1, 3),
-    string('.'),
-    repeat(digit, 1, 3),
-    string('.'),
-    repeat(digit, 1, 3)
-)
-ip6addr = either(
-    sequence(
-        string('0:0:0:0:0:'),
-        either(string('0'), string('FFFF')),
-        string(':'),
-        ip4addr
-    ),
-    sequence(
-        repeat(hexdigit, 1),
-        repeat(
-            sequence(string(':'), repeat(hexdigit, 1)),
-            7, 7
-        )
-    )
-)
-hostaddr = either(ip4addr, ip6addr)
+ip4addr = 3*((1,3)*digit + Literal('.')) + ((1,3)*digit)
+ip6addr = (Literal('0:0:0:0:0:') + oneOf('0 FFFF') + Literal(':') + ip4addr) ^ \
+          (OneOrMore(hexdigit) + 7*(Literal(':') + OneOrMore(hexdigit)))
+hostaddr = ip4addr ^ ip6addr
 
-host = either(hostname, hostaddr)
+host = hostname ^ hostaddr
 
-user = repeat(
-    either(
-        charclass(0x01, 0x09),
-        charclass(0x0B, 0x0C),
-        charclass(0x0E, 0x1F),
-        charclass(0x21, 0x3F),
-        charclass(0x41, 0xFF)
-    ), 1 # to infinity
-)
+user = OneOrMore(Or([
+    charclass(0x01, 0x09),
+    charclass(0x0B, 0x0C),
+    charclass(0x0E, 0x1F),
+    charclass(0x21, 0x3F),
+    charclass(0x41, 0xFF)
+])).leaveWhitespace()
 
-nickname = sequence(
-    either(letter, special),
-    repeat(either(letter, digit, special, string('-')), 0, 8)
-)
+
+nickname = (letter ^ special) + (0,8)*(letter ^ digit ^ special ^ Literal('-'))
 
 # Used as part of message
-prefix = either(
-    servername,
-    sequence(nickname,
-        maybe(
-            maybe(string('!'), user),
-            string('@'),
-            host
-        )
-    )
-)
+prefix = servername ^ \
+         nickname + Optional(Literal('!') + user) + Literal('@') + host
 
 # Used as part of message
-command = either(
-    repeat(letter, 1),
-    repeat(digit, 3, 3)
-)
+command = OneOrMore(letter) ^ 3*digit
 
-message = sequence(
-    maybe(string(':'), capture(prefix, name='prefix'), space),
-    capture(command, name='command'),
-    maybe(params),
-    crlf
-)
+message = Group(Optional(Literal(':') + prefix + space)) + \
+          Group(command) + \
+          Group(Optional(params))
+if config.traling_spaces:
+    message += ZeroOrMore(space)
+if config.soft_eol:
+    message += cr ^ lf ^ crlf
+else:
+    message += crlf
+message.leaveWhitespace()
 
-chanstring = either(
-    charclass(0x01, 0x07),
+chanstring = Or([
+    charclass(0x01, 0x06),
     charclass(0x08, 0x09),
     charclass(0x0B, 0x0C),
     charclass(0x0E, 0x1F),
     charclass(0x21, 0x2B),
     charclass(0x2D, 0x39),
     charclass(0x3B, 0xFF)
-)
-channelid = repeat(
-    either(
-        charclass(0x41, 0x5A),
-        digit
-    ), 5, 5
-)
+])
+channelid = 5*(charclass(0x41, 0x5A) ^ digit)
 
-channel = sequence(
-    either(
-        capture(either(
-            string('#'),
-            string('+'),
-            string('&')
-        ), name='prefix'),
-        sequence(
-            capture(string('!'), name='prefix'),
-            capture(channelid, name='id')
-        )
-    ),
-    capture(repeat(chanstring, 1), name='name'),
-    maybe(string(':'), capture(repeat(chanstring, 1), name='modeflag'))
-)
+channel = And([
+    Or([
+        oneOf('# + &'),
+        Literal('!') + Group(channelid)
+    ]),
+    Group(OneOrMore(chanstring)),
+    Optional(Suppress(Literal(':')) + Group(OneOrMore(chanstring)))
+])
 
-
-###
-# Make parsing less picky based on enabled config options
-###
-if config.traling_spaces:
-    message.rules.insert(-1, repeat(space))
-if config.soft_eol:
-    message.rules[-1] = soft_eol

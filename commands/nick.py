@@ -14,7 +14,7 @@ class NickCommand(Command):
     def from_client(self, to_nick=None, hopcount=None):
         if to_nick is None:
             return ERR_NONICKNAMEGIVEN(db.User(None, self.socket))
-        if len(to_nick) > 9 or abnf.parse(to_nick, abnf.nickname).parsed != to_nick:
+        if len(to_nick) > 9 or abnf.parse(to_nick, abnf.nickname) != to_nick:
             return ERR_ERRONEUSNICKNAME(to_nick, db.User(None, self.socket))
         # TODO: check for ERR_NICKCOLLISION after server protocol is done
 

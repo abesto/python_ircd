@@ -48,14 +48,14 @@ def from_string(str):
     if len(str) > 512:
         raise Error('Message must not be longer than 512 characters')
     raw = abnf.parse(str, abnf.message)
-    if not raw.parsed:
+    if not raw:
         raise Error('Failed to parse message: ' + str)
     msg = Message(
         None,
-        raw['command'].upper() if config.lowercase_commands else raw['command'],
-        *raw
+        raw[1].upper() if config.lowercase_commands else raw[1],
+        *raw[2:]
     )
-    if raw.has_key('prefix'):
-        msg.prefix = raw['prefix']
+    if len(raw[0]) > 0:
+        msg.prefix = raw[0]
     return msg
 
