@@ -12,29 +12,31 @@ class AbnfTest(unittest.TestCase):
         config.soft_eol = False
         reload(abnf)
 
-    def _cases(self, parser, cases):
+    def _test(self, parser, cases):
         for input, expected in cases.iteritems():
             actual = abnf.parse(input, parser)
             #print input, expected, actual
             self.assertEqual(expected, actual)
 
     def test_nickname(self):
-        self.assertFalse(abnf.parse('333', abnf.nickname))
-        self.assertEqual('abcd', abnf.parse('abcd', abnf.nickname))
-        self.assertEqual('[]\`_^{|}', abnf.parse('[]\`_^{|}', abnf.nickname))
+        self._test(abnf.nickname, {
+            '333': False,
+            'abcd': 'abcd',
+            '[]\`_^{|}': '[]\`_^{|}'
+        })
 
     def test_command(self):
-        self.assertFalse(abnf.parse('1', abnf.command))
-        self.assertFalse(abnf.parse('11', abnf.command))
-        self.assertEqual('100', abnf.parse('100', abnf.command))
-
-        self.assertFalse(abnf.parse('2fo', abnf.command))
-        self.assertFalse(abnf.parse('foo2', abnf.command))
-
-        self.assertEqual('fooBAR', abnf.parse('fooBAR', abnf.command))
+        self._test(abnf.command, {
+            '1': False,
+            '11': False,
+            '100': '100',
+            '2fo': False,
+            'foo2': False,
+            'fooBAR': 'fooBAR'
+        })
 
     def test_params(self):
-        cases = {
+        self._test(abnf.params, {
             '': '',
             ' ': '',
             ' a': ['a'],
@@ -43,21 +45,18 @@ class AbnfTest(unittest.TestCase):
             ' a b :asdf qwer': ['a', 'b', 'asdf qwer'],
             ' 1 2 3 4 5 6 7 8 9 10 11 12 13 14 asdf qwer': [str(i) for i in range(1,15)] + ['asdf qwer'],
             ' 1 2 3 4 5 6 7 8 9 10 11 12 13 14 :asdf qwer': [str(i) for i in range(1,15)] + ['asdf qwer']
-        }
-        for input, output in cases.iteritems():
-            self.assertEqual(output, abnf.parse(input, abnf.params))
+        })
 
     def test_shortname(self):
-        cases = {
+        self._test(abnf.shortname, {
             '': False,
             'a': 'a',
-            'a-b': 'a-b'
-        }
-        for input, output in cases.iteritems():
-            self.assertEqual(output, abnf.parse(input, abnf.shortname))
+            'foobar': 'foobar',
+            'a-foob-baz': 'a-foob-baz'
+        })
 
     def test_hostname(self):
-        self._cases(abnf.hostname, {
+        self._test(abnf.hostname, {
             '': False,
             'a': 'a',
             'a-b': 'a-b',
@@ -69,7 +68,7 @@ class AbnfTest(unittest.TestCase):
         })
 
     def test_ip4addr(self):
-        cases = {
+        self._test(abnf.ip4addr, {
             '': False,
             '1.': False,
             '1.2': False,
@@ -82,12 +81,10 @@ class AbnfTest(unittest.TestCase):
             '127.0.0.1': '127.0.0.1',
             '0.0.0.0': '0.0.0.0',
             '999.999.999.999': '999.999.999.999'
-        }
-        for input, output in cases.iteritems():
-            self.assertEqual(output, abnf.parse(input, abnf.ip4addr))
+        })
 
     def test_user(self):
-        self._cases(abnf.user, {
+        self._test(abnf.user, {
             'a b': False,
             'a\rb': False,
             'a\nb': False,
@@ -97,9 +94,9 @@ class AbnfTest(unittest.TestCase):
         })
 
     def test_message(self):
-        self._cases(abnf.message, {
+        self._test(abnf.message, {
             'JOIN #a\r\n': ['', 'JOIN', '#a'],
-            ':prefix COMMAND param1 :param is long\r\n': [':prefix', 'COMMAND', 'param1', 'param is long']
+            ':prefix COMMAND param1 :param is long\r\n': ['prefix', 'COMMAND', 'param1', 'param is long']
         })
 
 
@@ -114,7 +111,7 @@ class AbnfTest(unittest.TestCase):
         self.assertFalse(abnf.parse('JOIN #a\n', abnf.message))
         config.soft_eol = True
         reload(abnf)
-        self._cases(abnf.message, {
+        self._test(abnf.message, {
             'JOIN #a\r': ['', 'JOIN', '#a'],
             'JOIN #a\n': ['', 'JOIN', '#a']
         })
@@ -123,7 +120,6 @@ class AbnfTest(unittest.TestCase):
         """
         Regression in 119da40fc8a2ddfb885d6687b7dddd90144d2995
         Problem: Fails to parse \r\n terminated messages when soft_eol is on
-        Solution: try crlf first
         """
         config.soft_eol = True
         reload(abnf)
@@ -137,7 +133,7 @@ class AbnfTest(unittest.TestCase):
 
 
     def test_channel(self):
-        self._cases(abnf.channel, {
+        self._test(abnf.channel, {
             '#foo': ['#', 'foo'],
             '#foo:bar': ['#', 'foo', 'bar'],
             '!12345foo': ['!', '12345', 'foo'],

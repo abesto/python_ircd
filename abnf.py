@@ -100,7 +100,7 @@ prefix = servername ^ \
 # Used as part of message
 command = OneOrMore(letter) ^ 3*digit
 
-message = Group(Optional(Literal(':') + prefix + space)) + \
+message = Group(Optional(Suppress(Literal(':')) + prefix + space)) + \
           Group(command) + \
           Group(Optional(params))
 if config.traling_spaces:
