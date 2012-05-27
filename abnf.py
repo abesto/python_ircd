@@ -1,5 +1,6 @@
 import config
-from pyparsing import ParseException, oneOf, Suppress, Literal, Or, ZeroOrMore, Group, Optional, OneOrMore, And
+from pyparsing import ParseException, oneOf, Suppress, Literal, Or, ZeroOrMore, Group, Optional, OneOrMore, And, \
+    StringStart, StringEnd, Regex
 
 
 def flatten(L):
@@ -27,14 +28,18 @@ def parse(str, parser):
         return False
 
 # Helper; similar to srange applied to [a-b]
-def charclass(a, b): return oneOf([chr(i) for i in range(a,b+1)])
+def charclass(*classes):
+    l = []
+    for (min, max) in classes:
+        l +=  [chr(i) for i in range(min,max+1)]
+    return oneOf(l)
 
 ###
 # Some core rules
 ###
-alpha = charclass(0x41, 0x5A) ^ charclass(0x61, 0x7A)
-digit = charclass(0x30, 0x39)
-hexdigit = digit ^ oneOf('A B C D E F')
+alpha = charclass((0x41, 0x5A), (0x61, 0x7A))
+digit = charclass((0x30, 0x39))
+hexdigit = charclass((0x30, 0x39), (ord('A'), ord('F')))
 space = Suppress(Literal(' '))
 cr = Suppress(Literal('\r'))
 lf = Suppress(Literal('\n'))
@@ -46,15 +51,15 @@ crlf = cr + lf
 soft_eol = cr ^ lf ^ crlf
 
 letter = alpha
-special = charclass(0x5B, 0x60) ^ charclass(0x7B, 0x7D)
+special = charclass((0x5B, 0x60), (0x7B, 0x7D))
 
-nospcrlfcl = Or([
-    charclass(0x01, 0x09),
-    charclass(0x0B, 0x0C),
-    charclass(0x0E, 0x1F),
-    charclass(0x21, 0x39),
-    charclass(0x3B, 0xFF)
-])
+nospcrlfcl = charclass(
+    (0x01, 0x09),
+    (0x0B, 0x0C),
+    (0x0E, 0x1F),
+    (0x21, 0x39),
+    (0x3B, 0xFF)
+)
 
 # Used as part of hostname
 shortname = (letter ^ digit) + \
@@ -82,13 +87,13 @@ hostaddr = ip4addr ^ ip6addr
 
 host = hostname ^ hostaddr
 
-user = OneOrMore(Or([
-    charclass(0x01, 0x09),
-    charclass(0x0B, 0x0C),
-    charclass(0x0E, 0x1F),
-    charclass(0x21, 0x3F),
-    charclass(0x41, 0xFF)
-])).leaveWhitespace()
+user = OneOrMore(charclass(
+    (0x01, 0x09),
+    (0x0B, 0x0C),
+    (0x0E, 0x1F),
+    (0x21, 0x3F),
+    (0x41, 0xFF)
+)).leaveWhitespace()
 
 
 nickname = (letter ^ special) + (0,8)*(letter ^ digit ^ special ^ Literal('-'))
@@ -111,16 +116,16 @@ else:
     message += crlf
 message.leaveWhitespace()
 
-chanstring = Or([
-    charclass(0x01, 0x06),
-    charclass(0x08, 0x09),
-    charclass(0x0B, 0x0C),
-    charclass(0x0E, 0x1F),
-    charclass(0x21, 0x2B),
-    charclass(0x2D, 0x39),
-    charclass(0x3B, 0xFF)
-])
-channelid = 5*(charclass(0x41, 0x5A) ^ digit)
+chanstring = charclass(
+    (0x01, 0x06),
+    (0x08, 0x09),
+    (0x0B, 0x0C),
+    (0x0E, 0x1F),
+    (0x21, 0x2B),
+    (0x2D, 0x39),
+    (0x3B, 0xFF)
+)
+channelid = 5*(charclass((0x41, 0x5A)) ^ digit)
 
 channel = And([
     Or([
@@ -130,4 +135,30 @@ channel = And([
     Group(OneOrMore(chanstring)),
     Optional(Suppress(Literal(':')) + Group(OneOrMore(chanstring)))
 ])
+
+###
+# Wildcard expressions
+###
+wildone =  Literal('?')
+wildmany =  Literal('*')
+nowild =  charclass((0x01, 0x29), (0x2B, 0x3E), (0x40, 0xFF))
+noesc = charclass((0x01, 0x5B), (0x5D, 0xFF))
+mask = ZeroOrMore(nowild ^ (noesc + wildone) ^ (noesc + wildmany))
+
+# Fall back to regex for parsing wildcards
+matchone  = '[%s-%s]'%(chr(0x01), chr(0xFF))
+matchmany = '[%s-%s]*'%(chr(0x01), chr(0xFF))
+
+def wild_to_match(char):
+    if parse(char, wildone):
+        return matchone
+    if parse(char, wildmany):
+        return matchmany
+    return char
+
+def wildcard(str):
+    parsed = parse(str, mask)
+    if not parsed:
+        return parsed
+    return StringStart() + Regex(''.join([wild_to_match(x) for x in parsed])) + StringEnd()
 

@@ -140,3 +140,17 @@ class AbnfTest(unittest.TestCase):
             '!12345foo:barbaz': ['!', '12345', 'foo', 'barbaz']
         })
 
+    def test_wildcards(self):
+        self._test(abnf.wildcard('a?b'), {
+            'abb': 'abb',
+            'a3b': 'a3b',
+            'ab': False,
+            'xab': False,
+            'abx': False
+        })
+        self._test(abnf.wildcard('a*b'), {
+            'ab': 'ab',
+            'a foobar b': 'a foobar b',
+            'qab': False,
+            'abq': False
+        })
