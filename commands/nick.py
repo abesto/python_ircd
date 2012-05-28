@@ -1,4 +1,5 @@
 from commands.base import Command
+from db.models import User
 from message import Message as M
 from numeric_responses import *
 import abnf
@@ -12,11 +13,11 @@ class NickCommand(Command):
 
     def from_client(self, to_nick=None, hopcount=None):
         if to_nick is None:
-            return ERR_NONICKNAMEGIVEN(self.db.User(None, self.socket))
+            return ERR_NONICKNAMEGIVEN(User(None, self.socket))
         if len(to_nick) > 9 or abnf.parse(to_nick, abnf.nickname) != to_nick:
             return ERR_ERRONEUSNICKNAME(
                 to_nick,
-                self.db.User(None, self.socket))
+                User(None, self.socket))
         # TODO: check for ERR_NICKCOLLISION after server protocol is done
 
         if self.user is None:

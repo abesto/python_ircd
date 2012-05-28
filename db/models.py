@@ -6,10 +6,6 @@ class Error(Exception):
     pass
 
 
-users = {}
-channels = {}
-
-
 class UserMode(object):
     away = False
     invisible = False
@@ -103,45 +99,3 @@ class Channel(object):
     def part(self, user):
         self.users.remove(user)
 
-
-# User management
-def connected(nickname, socket):
-    return User(nickname, socket)
-
-
-def registered(user):
-    users[user.nickname] = user
-
-
-def rename(old, new):
-    users[new] = users[old]
-    del users[old]
-    users[new].nickname = new
-
-
-def disconnected(nickname):
-    del users[nickname]
-
-
-def user_exists(nickname):
-    return nickname in users
-
-
-def channel_exists(channel):
-    return channel in channels
-
-
-def get_user(nickname):
-    return users[nickname]
-
-
-def get_channel(name):
-    try:
-        return channels[name]
-    except KeyError:
-        channels[name] = Channel(name)
-        return channels[name]
-
-
-def all_servers():
-    return []

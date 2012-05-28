@@ -1,3 +1,4 @@
+from db.models import User, Server
 from numeric_responses import *
 
 
@@ -28,7 +29,7 @@ class Command(object):
                 'command must be set on Handler subclass')
         if self.command != message.command:
             raise "Wrong handler for " + repr(message)
-        if isinstance(socket.client, self.db.User) and \
+        if isinstance(socket.client, User) and \
            self.must_be_registered and \
            not socket.client.registered.both:
             return ERR_NOTREGISTERED(socket.client)
@@ -37,7 +38,7 @@ class Command(object):
 
         self.socket = socket
         self.message = message
-        if isinstance(socket.client, self.db.Server):
+        if isinstance(socket.client, Server):
             self.server = socket.client
             return self.handle_from_server(*message.parameters)
         else:

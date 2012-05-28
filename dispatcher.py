@@ -1,7 +1,7 @@
 import importlib
 import logging
 
-import db
+from db.memory_database import MemoryDatabase
 from config import config
 
 log = logging.getLogger(__name__)
@@ -11,6 +11,7 @@ class Error(Exception):
     pass
 
 handlers = {}
+db = MemoryDatabase()
 
 
 def register(command):
