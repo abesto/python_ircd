@@ -4,7 +4,6 @@ from config import config
 
 from commands.base import Command
 from numeric_responses import *
-import db
 from _welcome import welcome
 
 
@@ -15,7 +14,7 @@ class UserCommand(Command):
 
     def from_client(self, username, hostname, servername, realname):
         if self.user is None:
-            self.user = db.connected(None, self.socket)
+            self.user = self.db.connected(None, self.socket)
         if self.user.registered.user:
             return ERR_ALREADYREGISTRED(self.user)
 
@@ -32,7 +31,7 @@ class UserCommand(Command):
         self.user.registered.user = True
 
         if self.user.registered.nick:
-            db.registered(self.user)
+            self.db.registered(self.user)
             # TODO: return the rest of the welcome messages
             return welcome(self.user)
 

@@ -1,4 +1,3 @@
-import db
 from numeric_responses import *
 
 class Command(object):
@@ -6,11 +5,12 @@ class Command(object):
     command = None
     must_be_registered = True
 
-    def __init__(self):
+    def __init__(self, db):
         self.socket = None
         self.message = None
         self.user = None
         self.server = None
+        self.db = db
 
     def handle_from_server(self, *args):
         raise NotImplementedError
@@ -24,14 +24,14 @@ class Command(object):
             raise NotImplementedError('command must be set on Handler subclass')
         if self.command != message.command:
             raise "Wrong handler for " + repr(message)
-        if isinstance(socket.client, db.User) and self.must_be_registered and not socket.client.registered.both:
+        if isinstance(socket.client, self.db.User) and self.must_be_registered and not socket.client.registered.both:
             return ERR_NOTREGISTERED(socket.client)
         if len(message.parameters) < self.required_parameter_count:
             return ERR_NEEDMOREPARAMS(self.command, socket.client)
 
         self.socket = socket
         self.message = message
-        if isinstance(socket.client, db.Server):
+        if isinstance(socket.client, self.db.Server):
             self.server = socket.client
             return self.handle_from_server(*message.parameters)
         else:
