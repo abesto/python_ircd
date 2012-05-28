@@ -1,10 +1,6 @@
 from models import User, Channel
 
 
-class Error(Exception):
-    pass
-
-
 class MemoryDatabase(object):
     def __init__(self):
         self.users = {}

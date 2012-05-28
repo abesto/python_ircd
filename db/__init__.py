@@ -1,1 +1,2 @@
-__author__ = 'abesto'
+class Error(Exception):
+    pass

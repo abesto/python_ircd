@@ -1,5 +1,6 @@
 from commands.base import Command
 from numeric_responses import *
+import db
 from message import Message as M
 
 
@@ -10,7 +11,7 @@ class JoinCommand(Command):
     def from_client(self, channels, keys=''):
         if channels == '0':
             # TODO: part all channels
-            pass
+            return
         channels = channels.split(',')
         keys = keys.split(',')
 
@@ -22,13 +23,13 @@ class JoinCommand(Command):
                 channel = self.db.get_channel(channel_name)
                 channel.join(self.user)
                 ret.append(M(
-                    channel.users, 'JOIN', str(channel),
-                    prefix=self.user))
+                    channel.users, 'JOIN', str(channel), prefix=self.user))
                 ret.append(RPL_NAMEREPLY(self.user, channel))
+                # TODO: do we need to send RPL_ENDOFNAMES?
                 ret.append(RPL_ENDOFNAMES(self.user))
                 if channel.topic is not None:
                     ret.append(RPL_TOPIC(self.user, channel))
-            except self.db.Error:
+            except db.Error:
                 ret.append(ERR_NOSUCHCHANNEL(channel_name, self.user))
 
         return ret

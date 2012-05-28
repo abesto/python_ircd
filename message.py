@@ -8,11 +8,15 @@ class Error(Exception):
 
 class Message(object):
     def __init__(self, target, command, *parameters, **kwargs):
+        for parameter in parameters[:-1]:
+            if ' ' in parameter:
+                raise Error('Space can only appear in the very last parameter')
         self.prefix = kwargs['prefix'] if 'prefix' in kwargs else None
         self.command = command
         self.parameters = filter(lambda x: x is not None, list(parameters))
         self.target = target
         self.add_nick = kwargs['add_nick'] if 'add_nick' in kwargs else False
+
 
     def __str__(self):
         ret = ''

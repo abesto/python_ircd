@@ -1,8 +1,9 @@
 import message
 import abnf
+import db
 
 
-class Error(Exception):
+class Error(db.Error):
     pass
 
 
