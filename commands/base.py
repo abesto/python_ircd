@@ -1,5 +1,6 @@
 from numeric_responses import *
 
+
 class Command(object):
     required_parameter_count = None
     command = None
@@ -14,17 +15,22 @@ class Command(object):
 
     def handle_from_server(self, *args):
         raise NotImplementedError
+
     def from_client(self, *args):
         raise NotImplementedError
 
     def handle(self, socket, message):
         if self.required_parameter_count is None:
-            raise NotImplementedError('required_parameter_count must be set on Handler subclass')
+            raise NotImplementedError(
+                'required_parameter_count must be set on Handler subclass')
         if self.command is None:
-            raise NotImplementedError('command must be set on Handler subclass')
+            raise NotImplementedError(
+                'command must be set on Handler subclass')
         if self.command != message.command:
             raise "Wrong handler for " + repr(message)
-        if isinstance(socket.client, self.db.User) and self.must_be_registered and not socket.client.registered.both:
+        if isinstance(socket.client, self.db.User) and \
+           self.must_be_registered and \
+           not socket.client.registered.both:
             return ERR_NOTREGISTERED(socket.client)
         if len(message.parameters) < self.required_parameter_count:
             return ERR_NEEDMOREPARAMS(self.command, socket.client)
@@ -38,4 +44,3 @@ class Command(object):
             self.user = socket.client
             message.prefix = str(self.user)
             return self.from_client(*message.parameters)
-

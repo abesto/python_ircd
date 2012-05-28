@@ -2,16 +2,17 @@ from config import config
 import abnf
 
 
-class Error(Exception): pass
+class Error(Exception):
+    pass
 
 
 class Message(object):
     def __init__(self, target, command, *parameters, **kwargs):
-        self.prefix = kwargs['prefix'] if kwargs.has_key('prefix') else None
+        self.prefix = kwargs['prefix'] if 'prefix' in kwargs else None
         self.command = command
         self.parameters = filter(lambda x: x is not None, list(parameters))
         self.target = target
-        self.add_nick = kwargs['add_nick'] if kwargs.has_key('add_nick') else False
+        self.add_nick = kwargs['add_nick'] if 'add_nick' in kwargs else False
 
     def __str__(self):
         ret = ''
@@ -52,10 +53,11 @@ def from_string(str):
         raise Error('Failed to parse message: ' + str)
     msg = Message(
         None,
-        raw[1].upper() if config.get('parser', 'lowercase_commands') else raw[1],
+        raw[1].upper()
+        if config.get('parser', 'lowercase_commands')
+        else raw[1],
         *raw[2:]
     )
     if len(raw[0]) > 0:
         msg.prefix = raw[0]
     return msg
-

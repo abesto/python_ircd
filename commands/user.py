@@ -22,7 +22,7 @@ class UserCommand(Command):
         self.user.hostname = self.socket.getpeername()[0]
         try:
             addr = reversename.from_address(self.user.hostname)
-            self.user.hostname = str(resolver.query(addr,"PTR")[0])
+            self.user.hostname = str(resolver.query(addr, "PTR")[0])
         except:
             pass
         self.user.servername = config.get('server', 'servername')
@@ -34,4 +34,3 @@ class UserCommand(Command):
             self.db.registered(self.user)
             # TODO: return the rest of the welcome messages
             return welcome(self.user)
-

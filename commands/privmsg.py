@@ -16,13 +16,19 @@ class PrivmsgCommand(Command):
         # TODO: check for ERR_TOOMANYTARGETS
         for receiver in receivers.split(','):
             if self.db.channel_exists(receiver):
-                users = [user for user in self.db.get_channel(receiver).users if user is not self.user]
-                resp.append(M(users, self.command, receiver, text, prefix=self.user))
+                users = [user
+                         for user in self.db.get_channel(receiver).users
+                         if user is not self.user]
+                resp.append(M(
+                    users,
+                    self.command, receiver, text,
+                    prefix=self.user))
             elif self.db.user_exists(receiver):
-                resp.append(M(self.db.get_user(receiver), self.user.nickname, self.command, receiver, text))
-            # TODO: Implement wildcards, check for ERR_WILDTOPLEVEL, RPL_AWAY, ERR_NOTOPLEVEL
+                resp.append(M(
+                    self.db.get_user(receiver),
+                    self.user.nickname, self.command, receiver, text))
+            # TODO: Implement wildcards
+            # TODO: check for ERR_WILDTOPLEVEL, RPL_AWAY, ERR_NOTOPLEVEL
             else:
                 resp.append(ERR_NOSUCHNICK(receiver, self.user))
         return resp
-
-

@@ -1,6 +1,7 @@
 from commands.base import Command
 from numeric_responses import *
 
+
 class TopicCommand(Command):
     required_parameter_count = 1
     command = 'TOPIC'
@@ -22,4 +23,3 @@ class TopicCommand(Command):
         # Forward message to others on the channel
         self.message.target = channel.users
         return self.message
-

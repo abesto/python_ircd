@@ -23,7 +23,8 @@ def handle(socket, address):
         line = fileobj.readline()
         try:
             msg = message.from_string(line)
-            log.debug('<= %s %s (raw: %s)' % (repr(socket.client), repr(msg), repr(line)))
+            log.debug('<= %s %s (raw: %s)' %
+                      (repr(socket.client), repr(msg), repr(line)))
             resp = dispatcher.dispatch(socket, msg)
             if resp is None:
                 continue
@@ -47,4 +48,3 @@ log.info('Starting server, listening on %s:%s' % (host, port))
 server = gevent.server.StreamServer((host, port), handle)
 server.serve_forever()
 log.info('Server stopped')
-

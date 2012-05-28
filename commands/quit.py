@@ -1,6 +1,7 @@
 from commands.base import Command
 from message import Message as M
 
+
 class QuitCommand(Command):
     required_parameter_count = 0
     command = 'QUIT'

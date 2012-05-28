@@ -42,8 +42,10 @@ class AbnfTest(unittest.TestCase):
             ' a  b': False,
             ' a b': ['a', 'b'],
             ' a b :asdf qwer': ['a', 'b', 'asdf qwer'],
-            ' 1 2 3 4 5 6 7 8 9 10 11 12 13 14 asdf qwer': [str(i) for i in range(1,15)] + ['asdf qwer'],
-            ' 1 2 3 4 5 6 7 8 9 10 11 12 13 14 :asdf qwer': [str(i) for i in range(1,15)] + ['asdf qwer']
+            ' 1 2 3 4 5 6 7 8 9 10 11 12 13 14 asdf qwer':
+                [str(i) for i in range(1, 15)] + ['asdf qwer'],
+            ' 1 2 3 4 5 6 7 8 9 10 11 12 13 14 :asdf qwer':
+                [str(i) for i in range(1, 15)] + ['asdf qwer']
         })
 
     def test_shortname(self):
@@ -62,7 +64,8 @@ class AbnfTest(unittest.TestCase):
             'a-b.': False,
             'a-b.c': 'a-b.c',
             'a.b-c': 'a.b-c',
-            'a-b.c-': 'a-b.c-',  # This looks wrong, but the grammar in RFC2812 allows it
+             # This looks wrong, but the grammar in RFC2812 allows it
+            'a-b.c-': 'a-b.c-',
             'a-b.c-d.ef': 'a-b.c-d.ef'
         })
 
@@ -95,14 +98,16 @@ class AbnfTest(unittest.TestCase):
     def test_message(self):
         self._test(abnf.message, {
             'JOIN #a\r\n': ['', 'JOIN', '#a'],
-            ':prefix COMMAND param1 :param is long\r\n': ['prefix', 'COMMAND', 'param1', 'param is long']
+            ':prefix COMMAND param1 :param is long\r\n':
+                ['prefix', 'COMMAND', 'param1', 'param is long']
         })
-
 
     def test_trailing_spaces(self):
         self.assertFalse(abnf.parse('JOIN #a \r\n', abnf.message))
         config.set('parser', 'trailing_spaces', 'true')
-        self.assertListEqual(['', 'JOIN', '#a'], abnf.parse('JOIN #a   \r\n', abnf.message))
+        self.assertListEqual(
+            ['', 'JOIN', '#a'],
+            abnf.parse('JOIN #a   \r\n', abnf.message))
 
     def test_soft_eol(self):
         self.assertFalse(abnf.parse('JOIN #a\r', abnf.message))
@@ -119,13 +124,16 @@ class AbnfTest(unittest.TestCase):
         Problem: Fails to parse \r\n terminated messages when soft_eol is on
         """
         config.set('parser', 'soft_eol', 'true')
-        self.assertEqual(['', 'JOIN', '#a'], abnf.parse('JOIN #a\r\n', abnf.message))
+        self.assertEqual(
+            ['', 'JOIN', '#a'],
+            abnf.parse('JOIN #a\r\n', abnf.message))
 
     def test_trailing_spaces_and_soft_eol(self):
         config.set('parser', 'soft_eol', 'true')
         config.set('parser', 'trailing_spaces', 'true')
-        self.assertListEqual(['', 'JOIN', '#a'], abnf.parse('JOIN #a   \r', abnf.message))
-
+        self.assertListEqual(
+            ['', 'JOIN', '#a'],
+            abnf.parse('JOIN #a   \r', abnf.message))
 
     def test_channel(self):
         self._test(abnf.channel, {

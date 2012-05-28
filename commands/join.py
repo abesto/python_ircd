@@ -2,6 +2,7 @@ from commands.base import Command
 from numeric_responses import *
 from message import Message as M
 
+
 class JoinCommand(Command):
     required_parameter_count = 1
     command = 'JOIN'
@@ -20,7 +21,9 @@ class JoinCommand(Command):
             try:
                 channel = self.db.get_channel(channel_name)
                 channel.join(self.user)
-                ret.append(M(channel.users,'JOIN', str(channel), prefix=self.user))
+                ret.append(M(
+                    channel.users, 'JOIN', str(channel),
+                    prefix=self.user))
                 ret.append(RPL_NAMEREPLY(self.user, channel))
                 ret.append(RPL_ENDOFNAMES(self.user))
                 if channel.topic is not None:

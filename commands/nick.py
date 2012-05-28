@@ -14,7 +14,9 @@ class NickCommand(Command):
         if to_nick is None:
             return ERR_NONICKNAMEGIVEN(self.db.User(None, self.socket))
         if len(to_nick) > 9 or abnf.parse(to_nick, abnf.nickname) != to_nick:
-            return ERR_ERRONEUSNICKNAME(to_nick, self.db.User(None, self.socket))
+            return ERR_ERRONEUSNICKNAME(
+                to_nick,
+                self.db.User(None, self.socket))
         # TODO: check for ERR_NICKCOLLISION after server protocol is done
 
         if self.user is None:
@@ -26,7 +28,8 @@ class NickCommand(Command):
         # Nickname collision
         if self.db.user_exists(to_nick):
             # Unless it's the same client sending its own nickname
-            if self.user.registered.both and self.user is self.db.get_user(to_nick):
+            if self.user.registered.both and\
+               self.user is self.db.get_user(to_nick):
                 return
             # TODO: KILL if not a local user
             return ERR_NICKNAMEINUSE(to_nick, self.user)
@@ -41,7 +44,8 @@ class NickCommand(Command):
                 return welcome(self.user)
                 #TODO: send NICK and USER to other servers
 
-        # NICK before registration is complete, likely because the originally requested nick was already used
+        # NICK before registration is complete,
+        # likely because the originally requested nick was already used
         if not self.user.registered.nick:
             rename = M(self.user, 'NICK', to_nick, prefix=from_nick)
             self.user.nickname = to_nick
@@ -58,5 +62,6 @@ class NickCommand(Command):
         if self.user.registered.both:
             from_full = self.user
             self.db.rename(from_nick, to_nick)
-            return M([self.user] + self.db.all_servers(), from_full, 'NICK', to_nick)
-
+            return M(
+                [self.user] + self.db.all_servers(),
+                from_full, 'NICK', to_nick)
