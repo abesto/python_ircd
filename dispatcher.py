@@ -1,7 +1,8 @@
 import importlib
 import logging
+from config import config
+
 log = logging.getLogger(__name__)
-import config
 
 
 class Error(Exception): pass
@@ -19,7 +20,7 @@ def register(command):
 
 
 def dispatch(socket, message):
-    message.target = config.servername
+    message.target = config.get('server', 'servername')
     if not handlers.has_key(message.command):
         try:
             register(message.command)

@@ -1,7 +1,8 @@
 from numeric_responses import *
+from config import config
 
 def welcome(user):
-    f = open(config.motd_file, 'r')
+    f = open(config.get('server', 'motd_file'), 'r')
     ret =  [RPL_WELCOME(user),
             RPL_YOURHOST(user),
             RPL_CREATED(user),

@@ -1,5 +1,7 @@
 from dns import resolver, reversename
 
+from config import config
+
 from commands.base import Command
 from numeric_responses import *
 import db
@@ -24,7 +26,7 @@ class UserCommand(Command):
             self.user.hostname = str(resolver.query(addr,"PTR")[0])
         except:
             pass
-        self.user.servername = config.servername
+        self.user.servername = config.get('server', 'servername')
         self.user.realname = realname
 
         self.user.registered.user = True

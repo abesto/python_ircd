@@ -22,4 +22,5 @@ Used libraries:
  * **gevent**: Networking
  * **dnspython**: Reverse DNS lookups
  * **pyparsing**: Parsing incoming messages
+ * **PyDispatcher**: Notifying parts of the system to runtime config changes
 

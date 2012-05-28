@@ -1,4 +1,4 @@
-import config
+from config import config
 import abnf
 
 
@@ -52,7 +52,7 @@ def from_string(str):
         raise Error('Failed to parse message: ' + str)
     msg = Message(
         None,
-        raw[1].upper() if config.lowercase_commands else raw[1],
+        raw[1].upper() if config.get('parser', 'lowercase_commands') else raw[1],
         *raw[2:]
     )
     if len(raw[0]) > 0:

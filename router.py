@@ -1,7 +1,7 @@
 import logging
 log = logging.getLogger(__name__)
 
-import config
+from config import config
 import db
 
 
@@ -23,7 +23,7 @@ def send(message):
     for message in messages:
         # Default prefix is the servername
         if message.prefix is None:
-            message.prefix = config.servername
+            message.prefix = config.get('server', 'servername')
         # Unify into a list of targets
         if not isinstance(message.target, type([])):
             message.target = [message.target]

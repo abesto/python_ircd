@@ -1,15 +1,15 @@
 from commands.base import Command
 from message import Message as M
 from numeric_responses import *
+
 import db
+import abnf
 
 class WhoCommand(Command):
     required_parameter_count = 1
     command = 'WHO'
 
     def from_client(self, mask, o=None):
-        # TODO: The <mask> passed to WHO is matched against users' host, server,
-        # real name and nickname if the channel <mask> cannot be found.
         # TODO: If the "o" parameter is passed only operators are returned according
         # to the <mask> supplied.
         # TODO: If there is a list of parameters supplied
@@ -22,6 +22,12 @@ class WhoCommand(Command):
             channel = db.get_channel(mask)
             for channel_user in channel.users:
                 resp.append(RPL_WHOREPLY(self.user, channel_user, str(channel)))
-            resp.append(RPL_ENDOFWHO(self.user, str(channel)))
+        else:
+            parser = abnf.wildcard(mask)
+            for user in db.users:
+                # TODO: add check for servername
+                if any([abnf.parse(str, parser) for str in [user.hostname, user.realname, user.nickname]]):
+                    resp.append(RPL_WHOREPLY(self.user, user, mask))
+        #resp.append(RPL_ENDOFWHO(self.user, str(channel)))
         return resp
 

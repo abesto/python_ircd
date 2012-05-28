@@ -3,14 +3,13 @@
 import unittest
 
 import abnf
-import config
+from config import config
 
 
 class AbnfTest(unittest.TestCase):
     def setUp(self):
-        config.traling_spaces = False
-        config.soft_eol = False
-        reload(abnf)
+        config.set('parser', 'trailing_spaces', 'false')
+        config.set('parser', 'soft_eol', 'false')
 
     def _test(self, parser, cases):
         for input, expected in cases.iteritems():
@@ -102,15 +101,13 @@ class AbnfTest(unittest.TestCase):
 
     def test_trailing_spaces(self):
         self.assertFalse(abnf.parse('JOIN #a \r\n', abnf.message))
-        config.traling_spaces = True
-        reload(abnf)
+        config.set('parser', 'trailing_spaces', 'true')
         self.assertListEqual(['', 'JOIN', '#a'], abnf.parse('JOIN #a   \r\n', abnf.message))
 
     def test_soft_eol(self):
         self.assertFalse(abnf.parse('JOIN #a\r', abnf.message))
         self.assertFalse(abnf.parse('JOIN #a\n', abnf.message))
-        config.soft_eol = True
-        reload(abnf)
+        config.set('parser', 'soft_eol', 'true')
         self._test(abnf.message, {
             'JOIN #a\r': ['', 'JOIN', '#a'],
             'JOIN #a\n': ['', 'JOIN', '#a']
@@ -121,14 +118,12 @@ class AbnfTest(unittest.TestCase):
         Regression in 119da40fc8a2ddfb885d6687b7dddd90144d2995
         Problem: Fails to parse \r\n terminated messages when soft_eol is on
         """
-        config.soft_eol = True
-        reload(abnf)
+        config.set('parser', 'soft_eol', 'true')
         self.assertEqual(['', 'JOIN', '#a'], abnf.parse('JOIN #a\r\n', abnf.message))
 
     def test_trailing_spaces_and_soft_eol(self):
-        config.soft_eol = True
-        config.traling_spaces = True
-        reload(abnf)
+        config.set('parser', 'soft_eol', 'true')
+        config.set('parser', 'trailing_spaces', 'true')
         self.assertListEqual(['', 'JOIN', '#a'], abnf.parse('JOIN #a   \r', abnf.message))
 
 

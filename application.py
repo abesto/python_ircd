@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from config import config
+
 import logging
 log = logging.getLogger()
 
@@ -8,7 +10,6 @@ import gevent.server
 import gevent.monkey
 gevent.monkey.patch_all()
 
-import config
 import dispatcher
 import message
 import router
@@ -40,8 +41,10 @@ def handle(socket, address):
         pass
     socket.close()
 
-log.info('Starting server, listening on %s:%s' % (config.listen_host, config.listen_port))
-server = gevent.server.StreamServer((config.listen_host, config.listen_port), handle)
+host = config.get('server', 'listen_host')
+port = config.getint('server', 'listen_port')
+log.info('Starting server, listening on %s:%s' % (host, port))
+server = gevent.server.StreamServer((host, port), handle)
 server.serve_forever()
 log.info('Server stopped')
 

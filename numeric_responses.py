@@ -1,4 +1,4 @@
-import config
+from config import config
 from message import Message
 
 def M(*args, **kwargs):
@@ -8,9 +8,9 @@ def M(*args, **kwargs):
 def RPL_WELCOME(user):
     return M(user, '001', 'Welcome to the Internet Relay Network %s' % str(user))
 def RPL_YOURHOST(user):
-    return M(user, '002', 'Your host is %s running an experimental server' % config.servername)
+    return M(user, '002', 'Your host is %s running an experimental server' % config.get('server', 'servername'))
 def RPL_CREATED(user):
-    return M(user, '003', 'This server was created %s' % config.created)
+    return M(user, '003', 'This server was created %s' % config.get('server', 'created'))
 
 def RPL_WHOREPLY(target, user, mask):
     # H = Here
@@ -18,7 +18,7 @@ def RPL_WHOREPLY(target, user, mask):
     # * = IRCOp
     # @ = Channel Op
     # + = Voiced
-    return M(target, '352', mask, user.username, user.hostname, config.servername, user.nickname,
+    return M(target, '352', mask, user.username, user.hostname, config.get('server', 'servername'), user.nickname,
         # TODO: more flags, if needed
         'G' if user.away else 'H', '0 ' + user.realname
     )
@@ -40,7 +40,7 @@ def RPL_ENDOFNAMES(user):
     return M(user, '366', 'End of NAMES list')
 
 def RPL_MOTDSTART(user):
-    return M(user, '375', '- %s Message of the day - ' % config.servername)
+    return M(user, '375', '- %s Message of the day - ' % config.get('server', 'servername'))
 def RPL_MOTD(user, text):
     return M(user, '372', '- %s' % text)
 def RPL_ENDOFMOTD(user):

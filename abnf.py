@@ -1,6 +1,8 @@
-import config
-from pyparsing import ParseException, oneOf, Suppress, Literal, Or, ZeroOrMore, Group, Optional, OneOrMore, And, \
+from pyparsing import ParseException, oneOf, Suppress, Literal, Or, ZeroOrMore, Group, Optional, OneOrMore, And,\
     StringStart, StringEnd, Regex
+from pydispatch import dispatcher
+
+from config import config
 
 
 def flatten(L):
@@ -105,16 +107,22 @@ prefix = servername ^ \
 # Used as part of message
 command = OneOrMore(letter) ^ 3*digit
 
-message = Group(Optional(Suppress(Literal(':')) + prefix + space)) + \
-          Group(command) + \
-          Group(Optional(params))
-if config.traling_spaces:
-    message += ZeroOrMore(space)
-if config.soft_eol:
-    message += cr ^ lf ^ crlf
-else:
-    message += crlf
-message.leaveWhitespace()
+message = None
+def build_message():
+    global message
+    message = Group(Optional(Suppress(Literal(':')) + prefix + space)) + \
+              Group(command) + \
+              Group(Optional(params))
+    if config.getboolean('parser', 'trailing_spaces'):
+        message += ZeroOrMore(space)
+    if config.getboolean('parser', 'soft_eol'):
+        message += cr ^ lf ^ crlf
+    else:
+        message += crlf
+    message.leaveWhitespace()
+build_message()
+dispatcher.connect(build_message, 'parser.trailing_spaces', 'config')
+dispatcher.connect(build_message, 'parser.soft_eol', 'config')
 
 chanstring = charclass(
     (0x01, 0x06),
