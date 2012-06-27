@@ -1,6 +1,6 @@
 from commands.base import Command
 from numeric_responses import *
-import db
+import models
 from message import Message as M
 
 
@@ -29,7 +29,7 @@ class JoinCommand(Command):
                 ret.append(RPL_ENDOFNAMES(self.user))
                 if channel.topic is not None:
                     ret.append(RPL_TOPIC(self.user, channel))
-            except db.Error:
+            except models.Error:
                 ret.append(ERR_NOSUCHCHANNEL(channel_name, self.user))
 
         return ret

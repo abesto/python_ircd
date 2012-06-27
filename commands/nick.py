@@ -1,5 +1,5 @@
 from commands.base import Command
-from db.models import User
+from models import User
 from message import Message as M
 from numeric_responses import *
 import abnf

@@ -1,4 +1,4 @@
-from db.models import User, Server
+from models import User, Server
 from numeric_responses import *
 
 

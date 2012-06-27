@@ -2,7 +2,7 @@ import unittest
 from mock import *
 
 from message import Message as M
-from db.models import Error as DbModelError
+from models import Error as ModelError
 from numeric_responses import *
 from commands.join import JoinCommand
 
@@ -60,7 +60,7 @@ class TestJoinCommand(unittest.TestCase):
 
     def test_no_such_channel(self):
         self.join.user = self.users[1]
-        self.db.get_channel.side_effect = DbModelError()
+        self.db.get_channel.side_effect = ModelError()
         self.assertListEqual(
             [ERR_NOSUCHCHANNEL('#channel', self.join.user)],
             self.join.from_client('#channel')
