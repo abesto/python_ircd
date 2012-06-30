@@ -46,10 +46,3 @@ class RegistrationStatus(object):
         self.nick = False
         self.user = False
 
-    def __getattr__(self, item):
-        if item == 'both':
-            return self.nick and self.user
-        else:
-            raise AttributeError
-
-

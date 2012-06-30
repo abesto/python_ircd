@@ -20,8 +20,8 @@ class TestJoinCommand(unittest.TestCase):
         self.channel = MagicMock()
         self.channel.__str__.return_value = 'testchannel'
 
-        self.join = JoinCommand()
-        self.join.actor = Mock()
+        self.cmd = JoinCommand()
+        self.cmd.actor = Mock()
 
     def tearDown(self):
         self.channel_patcher.stop()
@@ -31,17 +31,17 @@ class TestJoinCommand(unittest.TestCase):
         "user1 joining #channel where user0 is already a member, topic is set"
         self.channel.users = self.users
         self.channel.topic = 'channel topic'
-        self.join.user = self.users[1]
+        self.cmd.user = self.users[1]
         self.mock_channel.get.return_value = self.channel
 
         self.assertListEqual(
             [
                 M(self.mock_actorcollection(self.users), 'JOIN', str(self.channel), prefix=self.users[1]),
-                RPL_NAMEREPLY(self.join.actor, self.channel),
-                RPL_ENDOFNAMES(self.join.actor),
-                RPL_TOPIC(self.join.actor, self.channel)
+                RPL_NAMEREPLY(self.cmd.actor, self.channel),
+                RPL_ENDOFNAMES(self.cmd.actor),
+                RPL_TOPIC(self.cmd.actor, self.channel)
             ],
-            self.join.from_user('#channel')
+            self.cmd.from_user('#channel')
         )
 
 
@@ -49,19 +49,19 @@ class TestJoinCommand(unittest.TestCase):
         "user1 joining #channel where user0 is already a member, topic isnt set"
         self.channel.users = self.users
         self.channel.topic = None
-        self.join.user = self.users[1]
+        self.cmd.user = self.users[1]
         self.mock_channel.get.return_value = self.channel
 
         self.assertListEqual(
             [
                 M(self.mock_actorcollection(self.users), 'JOIN', str(self.channel), prefix=self.users[1]),
-                RPL_NAMEREPLY(self.join.actor, self.channel),
-                RPL_ENDOFNAMES(self.join.actor),
+                RPL_NAMEREPLY(self.cmd.actor, self.channel),
+                RPL_ENDOFNAMES(self.cmd.actor),
             ],
-             self.join.from_user('#channel')
+             self.cmd.from_user('#channel')
         )
 
-        self.channel.join.assert_called_once_with(self.join.user)
+        self.channel.join.assert_called_once_with(self.cmd.user)
 
     def test_no_such_channel(self):
         models_patcher = patch('commands.join.models')
@@ -69,11 +69,11 @@ class TestJoinCommand(unittest.TestCase):
         class Error(Exception):
             pass
         models.Error  = Error
-        self.join.user = self.users[1]
+        self.cmd.user = self.users[1]
         self.mock_channel.exists.return_value = False
         self.mock_channel.side_effect = Error
         self.assertListEqual(
-            [ERR_NOSUCHCHANNEL('#channel', self.join.actor)],
-            self.join.from_user('#channel')
+            [ERR_NOSUCHCHANNEL('#channel', self.cmd.actor)],
+            self.cmd.from_user('#channel')
         )
         models_patcher.stop()

@@ -2,13 +2,13 @@ from numeric_responses import *
 from config import config
 
 
-def welcome(user):
+def welcome(actor):
     f = open(config.get('server', 'motd_file'), 'r')
-    ret = [RPL_WELCOME(user),
-           RPL_YOURHOST(user),
-           RPL_CREATED(user),
-           RPL_MOTDSTART(user)]
-    ret += [RPL_MOTD(user, line.strip()) for line in f]
+    ret = [RPL_WELCOME(actor),
+           RPL_YOURHOST(actor),
+           RPL_CREATED(actor),
+           RPL_MOTDSTART(actor)]
+    ret += [RPL_MOTD(actor, line.strip()) for line in f]
     f.close()
-    ret.append(RPL_ENDOFMOTD(user))
+    ret.append(RPL_ENDOFMOTD(actor))
     return ret
