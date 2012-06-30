@@ -1,3 +1,8 @@
+"""
+Parse incoming messages using pyparsing.
+Wildcards are recognized using regular expressions.
+"""
+
 from pyparsing import ParseException, oneOf, Suppress, Literal, Or, \
     ZeroOrMore, Group, Optional, OneOrMore, And, StringStart, StringEnd, Regex
 from pydispatch import dispatcher

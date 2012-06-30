@@ -1,11 +1,13 @@
-import models
-from numeric_responses import *
+import inspect
+
+from include.numeric_responses import *
 
 
 class Command(object):
     required_parameter_count = None
     command = None
-    must_be_registered = True
+    user_registration_command = False
+    server_registration_command = False
 
     def __init__(self):
         self.message = None
@@ -31,26 +33,27 @@ class Command(object):
                 'command must be set on Handler subclass')
         if self.command != message.command:
             raise "Wrong handler for " + repr(message)
-        if actor.is_user() and \
-           self.must_be_registered and \
-           not actor.get_user().registered.both:
-            return ERR_NOTREGISTERED(actor)
-        if len(message.parameters) < self.required_parameter_count:
-            return ERR_NEEDMOREPARAMS(self.command, actor)
 
         self.actor = actor
         self.message = message
 
-        if message.command == 'PASS':
-            self.common()
-        elif actor.is_server() or (not actor.is_user() and message.command == 'SERVICE'):
+        if not actor.is_user() and not actor.is_server():
+            if self.user_registration_command and self.server_registration_command:
+                return self.common()
+            elif self.user_registration_command:
+                return self.from_user(*message.parameters)
+            elif self.server_registration_command:
+                return self.from_server(*message.parameters)
+            else:
+                return ERR_NOTREGISTERED(actor)
+
+        if len(message.parameters) < self.required_parameter_count:
+            return ERR_NEEDMOREPARAMS(self.command, actor)
+        elif actor.is_server():
             self.server = self.actor.get_server()
             return self.from_server(*message.parameters)
-        elif self.actor.is_user() or (not actor.is_server() and message.command in ['NICK', 'USER']):
-            try:
-                self.user = self.actor.get_user()
-            except models.Error:
-                self.user = None
+        elif self.actor.is_user():
+            self.user = self.actor.get_user()
             message.prefix = str(self.user)
             return self.from_user(*message.parameters)
         else:

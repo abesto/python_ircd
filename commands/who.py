@@ -1,16 +1,16 @@
-from commands.base import Command
-from models.channel import Channel
-from models.user import User
-from numeric_responses import *
+from include import abnf
+from include.numeric_responses import *
 
-import abnf
+from models import Channel, User
+
+from commands.base import Command
 
 
 class WhoCommand(Command):
     required_parameter_count = 1
     command = 'WHO'
 
-    def from_user(self, mask, o=None):
+    def from_user(self, mask, o=None, *_):
         # TODO: If the "o" parameter is passed only operators are returned
         # according to the <mask> supplied.
         # TODO: If there is a list of parameters supplied

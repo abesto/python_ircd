@@ -2,7 +2,7 @@
 
 import unittest
 
-import abnf
+from include import abnf
 from config import config
 
 

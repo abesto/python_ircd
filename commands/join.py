@@ -1,16 +1,17 @@
-from commands.base import Command
-from models.actorcollection import ActorCollection
-from numeric_responses import *
+from include.numeric_responses import *
+from include import Message as M
+
 import models
-from models import Channel
-from message import Message as M
+from models import Channel, ActorCollection
+
+from commands.base import Command
 
 
 class JoinCommand(Command):
     required_parameter_count = 1
     command = 'JOIN'
 
-    def from_user(self, channels, keys=''):
+    def from_user(self, channels, keys='', *_):
         if channels == '0':
             # TODO: part all channels
             return

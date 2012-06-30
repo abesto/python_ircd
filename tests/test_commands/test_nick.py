@@ -3,7 +3,7 @@ from mock import *
 
 from commands.nick import NickCommand
 from commands._welcome import welcome
-from numeric_responses import *
+from include.numeric_responses import *
 
 class TestNickCommand(unittest.TestCase):
     def setUp(self):
@@ -53,7 +53,7 @@ class TestNickCommand(unittest.TestCase):
         self.cmd.user.registered.both = True
         self.mock_user.get.return_value = self.cmd.user
         self.assertIsNone(self.cmd.from_user(self.cmd.user.nickname))
-        self.mock_user.get.assertCalledWith(self.cmd.user.nickname)
+        self.mock_user.get.assert_called_with(self.cmd.user.nickname)
 
     def test_first_command(self):
         "First NICK, USER is not received"
@@ -67,7 +67,7 @@ class TestNickCommand(unittest.TestCase):
             None,
             self.cmd.from_user('nick')
         )
-        self.mock_user.assertCalledWidth('nick')
+        self.mock_user.assert_called_with('nick')
         self.assertTrue(self.cmd.user.registered.nick)
 
     def test_registration_completed(self):

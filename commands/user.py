@@ -2,18 +2,19 @@ from dns import resolver, reversename
 
 from config import config
 
-from commands.base import Command
-from models.user import User
-from numeric_responses import *
+from models import User
+from include.numeric_responses import *
+
 from _welcome import welcome
+from commands.base import Command
 
 
 class UserCommand(Command):
     required_parameter_count = 4
     command = 'USER'
-    must_be_registered = False
+    user_registration_command = True
 
-    def from_user(self, username, hostname, servername, realname):
+    def from_user(self, username, hostname, servername, realname, *_):
         if not self.actor.is_user():
             self.actor.user = self.user = User(None)
 

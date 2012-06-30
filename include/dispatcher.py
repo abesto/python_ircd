@@ -1,3 +1,5 @@
+"Load, instantiate and call command handlers"
+
 import importlib
 import logging
 

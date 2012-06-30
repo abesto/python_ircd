@@ -29,6 +29,10 @@ class ActorCollection(object):
         for child in self.children:
             child.flush()
 
+    def disconnect(self):
+        for child in self.children:
+            child.disconnect()
+
     def read(self):
         raise NotImplementedError
 
@@ -50,3 +54,5 @@ class ActorCollection(object):
     def __contains__(self, item):
         return item in self.children
 
+    def __iter__(self):
+        return iter(self.children)

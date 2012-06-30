@@ -17,6 +17,27 @@ class Message(object):
         self.target = target
         self.add_nick = kwargs['add_nick'] if 'add_nick' in kwargs else False
 
+    @staticmethod
+    def from_string(str):
+        """
+        @type str string
+        """
+        if len(str) > 512:
+            raise Error('Message must not be longer than 512 characters')
+        raw = abnf.parse(str, abnf.message)
+        if not raw:
+            raise Error('Failed to parse message: ' + str)
+        msg = Message(
+            None,
+            raw[1].upper()
+            if config.get('parser', 'lowercase_commands')
+            else raw[1],
+            *raw[2:]
+        )
+        if len(raw[0]) > 0:
+            msg.prefix = raw[0]
+        return msg
+
 
     def __str__(self):
         ret = ''
@@ -45,23 +66,3 @@ class Message(object):
         and self.parameters == other.parameters \
         and self.target == other.target
 
-
-def from_string(str):
-    """
-    @type str string
-    """
-    if len(str) > 512:
-        raise Error('Message must not be longer than 512 characters')
-    raw = abnf.parse(str, abnf.message)
-    if not raw:
-        raise Error('Failed to parse message: ' + str)
-    msg = Message(
-        None,
-        raw[1].upper()
-        if config.get('parser', 'lowercase_commands')
-        else raw[1],
-        *raw[2:]
-    )
-    if len(raw[0]) > 0:
-        msg.prefix = raw[0]
-    return msg

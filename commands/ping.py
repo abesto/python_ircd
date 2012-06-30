@@ -1,5 +1,6 @@
+from include import Message as M
+
 from commands.base import Command
-from message import Message as M
 
 
 class PingCommand(Command):

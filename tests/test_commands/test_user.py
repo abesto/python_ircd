@@ -3,14 +3,12 @@ from mock import *
 
 from commands.user import UserCommand
 from commands._welcome import welcome
-from numeric_responses import *
+from include.numeric_responses import *
 
 class TestNickCommand(unittest.TestCase):
     def setUp(self):
-        self.user_patcher = patch('commands.nick.User')
-        self.actorcollection_patcher = patch('commands.nick.ActorCollection')
+        self.user_patcher = patch('commands.user.User')
         self.mock_user = self.user_patcher.start()
-        self.mock_actorcollection = self.actorcollection_patcher.start()
 
         self.users = [MagicMock(), MagicMock()]
         self.users[0].__str__.return_value = self.users[0].nickname = 'nick0'
@@ -24,7 +22,6 @@ class TestNickCommand(unittest.TestCase):
 
     def tearDown(self):
         self.user_patcher.stop()
-        self.actorcollection_patcher.stop()
 
     def test_first_command(self):
         "NICK is not received"
@@ -37,7 +34,8 @@ class TestNickCommand(unittest.TestCase):
             None,
             self.cmd.from_user('username', 'hostname', 'servername', 'realname')
         )
-        self.mock_user.assertCalledWidth('nick')
+        self.assertEqual(self.cmd.actor.user, user)
+        self.assertEqual(self.cmd.user, user)
         self.assertTrue(self.cmd.user.registered.user)
 
     def test_after_nick(self):

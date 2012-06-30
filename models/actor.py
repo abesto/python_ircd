@@ -8,6 +8,7 @@ class Actor(BaseModel):
 
     def __init__(self, socket, **kwargs):
         self.password = None
+        self.disconnected = False
 
         self.socket = socket
         self.socket_file = socket.makefile('rw')
@@ -82,7 +83,7 @@ class Actor(BaseModel):
     def __repr__(self):
         return str(self)
 
-    # Implement socketfile-like interface
+    # Implement socket-like interface
     def write(self, message):
         if self.is_user() and message.add_nick:
             message.parameters.insert(0, self.get_user().nickname)
@@ -97,4 +98,10 @@ class Actor(BaseModel):
         msg = message.from_string(self.socket_file.readline())
         msg.sender = self
         return msg
+
+    def disconnect(self):
+        self.disconnected = True
+
+    def __iter__(self):
+        return iter([self])
 

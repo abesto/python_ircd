@@ -1,18 +1,19 @@
 from commands.base import Command
-from models import User, Server
-from message import Message as M
-from models.actorcollection import ActorCollection
-from numeric_responses import *
-import abnf
+from models import User, Server, ActorCollection
+
+from include import abnf
+from include import Message as M
+from include.numeric_responses import *
+
 from _welcome import welcome
 
 
 class NickCommand(Command):
     required_parameter_count = 0
     command = 'NICK'
-    must_be_registered = False
+    user_registration_command = True
 
-    def from_user(self, to_nick=None, hopcount=None):
+    def from_user(self, to_nick=None, hopcount=None, *_):
         if to_nick is None:
             return ERR_NONICKNAMEGIVEN(self.actor)
         if len(to_nick) > 9 or abnf.parse(to_nick, abnf.nickname) != to_nick:

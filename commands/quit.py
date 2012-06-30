@@ -1,11 +1,13 @@
+from include import Message as M
+
 from commands.base import Command
-from message import Message as M
 
 
 class QuitCommand(Command):
     required_parameter_count = 0
     command = 'QUIT'
 
-    def from_user(self, message=None):
+    def from_user(self, message=None, *_):
         self.user.delete()
-        return [M(self.actor, 'ERROR'), 'disconnect']
+        self.actor.disconnect()
+        return [M(self.actor, 'ERROR')]
