@@ -1,12 +1,10 @@
-import message
+from models.base import BaseModel
 
-class User(object):
-    def __init__(self, nickname, socket):
+
+class User(BaseModel):
+    def __init__(self, nickname):
         self.nickname = nickname
         self.channels = []
-        self.socket = socket
-        self.socket_file = self.socket.makefile('rw')
-        self.socket.client = self
 
         self.hostname = None
         self.username = None
@@ -17,20 +15,14 @@ class User(object):
         self.mode = UserMode()
         self.away = False
 
-    def write(self, message):
-        self.socket_file.write(message)
+    def get_key(self):
+        return self.nickname
 
-    def flush(self):
-        self.socket_file.flush()
+    def rename(self, to):
+        self.set_key(to)
 
-    def read(self):
-        msg = message.from_string(self.socket_file.readline())
-        msg.sender = self
-        return msg
-
-    def disconnect(self):
-        self.socket_file.close()
-        self.socket.close()
+    def _set_key(self, new_key):
+        self.nickname = new_key
 
     def __str__(self):
         return '%s!%s@%s' % (self.nickname, self.username, self.hostname)

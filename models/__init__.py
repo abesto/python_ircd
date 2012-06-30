@@ -1,7 +1,8 @@
 class Error(Exception):
     pass
 
-from user import User
+from actor import Actor
+from actorcollection import ActorCollection
 from channel import Channel
 from server import Server
-
+from user import User

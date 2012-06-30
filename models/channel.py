@@ -1,5 +1,6 @@
 import abnf
 from models import Error
+from models.base import BaseModel
 
 class ChannelMode(object):
     def __init__(self):
@@ -7,7 +8,7 @@ class ChannelMode(object):
         self.invite_only = False
 
 
-class Channel(object):
+class Channel(BaseModel):
     def __init__(self, name):
         raw = abnf.parse(name, abnf.channel)
         if not raw:
@@ -22,6 +23,9 @@ class Channel(object):
 
     def __str__(self):
         return self.prefix + self.name
+
+    def get_key(self):
+        return str(self)
 
     def join(self, user):
         self.users.append(user)

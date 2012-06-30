@@ -6,6 +6,6 @@ class QuitCommand(Command):
     required_parameter_count = 0
     command = 'QUIT'
 
-    def from_client(self, message=None):
-        self.db.disconnected(self.user.nickname)
-        return [M(self.user, 'ERROR'), 'disconnect']
+    def from_user(self, message=None):
+        self.user.delete()
+        return [M(self.actor, 'ERROR'), 'disconnect']

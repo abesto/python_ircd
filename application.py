@@ -10,21 +10,19 @@ import gevent.server
 import gevent.monkey
 gevent.monkey.patch_all()
 
-import dispatcher
+from dispatcher import Dispatcher
+dispatcher = Dispatcher()
+
 import message
 import router
 
-
 def handle(socket, address):
-    socket.client = None
     fileobj = socket.makefile('rw')
     disconnect = False
     while not disconnect:
         line = fileobj.readline()
         try:
             msg = message.from_string(line)
-            log.debug('<= %s %s (raw: %s)' %
-                      (repr(socket.client), repr(msg), repr(line)))
             resp = dispatcher.dispatch(socket, msg)
             if resp is None:
                 continue

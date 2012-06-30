@@ -1,4 +1,4 @@
-from models import User, Server
+import models
 from numeric_responses import *
 
 
@@ -7,20 +7,22 @@ class Command(object):
     command = None
     must_be_registered = True
 
-    def __init__(self, db):
-        self.socket = None
+    def __init__(self):
         self.message = None
+        self.actor = None
         self.user = None
         self.server = None
-        self.db = db
 
-    def handle_from_server(self, *args):
+    def from_server(self, *args):
         raise NotImplementedError
 
-    def from_client(self, *args):
+    def from_user(self, *args):
         raise NotImplementedError
 
-    def handle(self, socket, message):
+    def common(self, *args):
+        raise NotImplementedError
+
+    def handle(self, actor, message):
         if self.required_parameter_count is None:
             raise NotImplementedError(
                 'required_parameter_count must be set on Handler subclass')
@@ -29,19 +31,27 @@ class Command(object):
                 'command must be set on Handler subclass')
         if self.command != message.command:
             raise "Wrong handler for " + repr(message)
-        if isinstance(socket.client, User) and \
+        if actor.is_user() and \
            self.must_be_registered and \
-           not socket.client.registered.both:
-            return ERR_NOTREGISTERED(socket.client)
+           not actor.get_user().registered.both:
+            return ERR_NOTREGISTERED(actor)
         if len(message.parameters) < self.required_parameter_count:
-            return ERR_NEEDMOREPARAMS(self.command, socket.client)
+            return ERR_NEEDMOREPARAMS(self.command, actor)
 
-        self.socket = socket
+        self.actor = actor
         self.message = message
-        if isinstance(socket.client, Server):
-            self.server = socket.client
-            return self.handle_from_server(*message.parameters)
-        else:
-            self.user = socket.client
+
+        if message.command == 'PASS':
+            self.common()
+        elif actor.is_server() or (not actor.is_user() and message.command == 'SERVICE'):
+            self.server = self.actor.get_server()
+            return self.from_server(*message.parameters)
+        elif self.actor.is_user() or (not actor.is_server() and message.command in ['NICK', 'USER']):
+            try:
+                self.user = self.actor.get_user()
+            except models.Error:
+                self.user = None
             message.prefix = str(self.user)
-            return self.from_client(*message.parameters)
+            return self.from_user(*message.parameters)
+        else:
+            raise Exception('Don\'t know what to do :(')

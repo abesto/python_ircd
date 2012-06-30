@@ -6,19 +6,18 @@ from commands.ping import PingCommand
 class TestPingCommand(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.ping = PingCommand(mock.Mock())
-        cls.ping.socket = mock.Mock()
+        cls.ping = PingCommand()
 
     def test_no_args(self):
-        resp = self.ping.from_client()
+        resp = self.ping.from_user()
         self.assertEqual('PONG', resp.command)
         self.assertEqual([], resp.parameters)
 
     def test_args(self):
-        resp = self.ping.from_client('foo')
+        resp = self.ping.from_user('foo')
         self.assertEqual('PONG', resp.command)
         self.assertEqual(['foo'], resp.parameters)
-        resp = self.ping.from_client('foo', 'bar')
+        resp = self.ping.from_user('foo', 'bar')
         self.assertEqual('PONG', resp.command)
         self.assertEqual(['foo', 'bar'], resp.parameters)
 

@@ -1,4 +1,6 @@
 from commands.base import Command
+from models.channel import Channel
+from models.user import User
 from numeric_responses import *
 
 import abnf
@@ -8,7 +10,7 @@ class WhoCommand(Command):
     required_parameter_count = 1
     command = 'WHO'
 
-    def from_client(self, mask, o=None):
+    def from_user(self, mask, o=None):
         # TODO: If the "o" parameter is passed only operators are returned
         # according to the <mask> supplied.
         # TODO: If there is a list of parameters supplied
@@ -17,19 +19,19 @@ class WhoCommand(Command):
         # the item.
 
         resp = []
-        if self.db.channel_exists(mask):
-            channel = self.db.get_channel(mask)
+        if Channel.exists(mask):
+            channel = Channel.get(mask)
             for channel_user in channel.users:
                 resp.append(
-                    RPL_WHOREPLY(self.user, channel_user, str(channel))
+                    RPL_WHOREPLY(self.actor, channel_user, str(channel))
                 )
         else:
             parser = abnf.wildcard(mask)
-            for user in self.db.users:
+            for user in User.all():
                 # TODO: add check for servername
                 if any([abnf.parse(str, parser)
                         for str
                         in [user.hostname, user.realname, user.nickname]]):
-                    resp.append(RPL_WHOREPLY(self.user, user, mask))
+                    resp.append(RPL_WHOREPLY(self.actor, user, mask))
         #resp.append(RPL_ENDOFWHO(self.user, str(channel)))
         return resp

@@ -1,4 +1,6 @@
 from commands.base import Command
+from models.actorcollection import ActorCollection
+from models.channel import Channel
 from numeric_responses import *
 
 
@@ -6,20 +8,20 @@ class TopicCommand(Command):
     required_parameter_count = 1
     command = 'TOPIC'
 
-    def from_client(self, channel, topic=None):
+    def from_user(self, channel_name, topic=None):
         # TODO: ERR_NOCHANMODES, ERR_CHANOPRIVSNEEDED
-        channel = self.db.get_channel(channel)
-        if self.user not in channel.users:
-            return ERR_NOTONCHANNEL(user, channel)
+        if not Channel.exists(channel_name) or self.user not in Channel.get(channel_name).users:
+            return ERR_NOTONCHANNEL(self.actor, channel_name)
+        channel = Channel.get(channel_name)
         if topic is None:
             if channel.topic is None:
-                return RPL_NOTOPIC(self.user, channel)
+                return RPL_NOTOPIC(self.actor, channel)
             else:
-                return RPL_TOPIC(self.user, channel)
+                return RPL_TOPIC(self.actor, channel)
         elif topic == '':
             channel.topic = None
         else:
             channel.topic = topic
         # Forward message to others on the channel
-        self.message.target = channel.users
+        self.message.target = ActorCollection(channel.users)
         return self.message

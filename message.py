@@ -43,7 +43,7 @@ class Message(object):
         and self.prefix == other.prefix \
         and self.command == other.command \
         and self.parameters == other.parameters \
-        and self.target is other.target
+        and self.target == other.target
 
 
 def from_string(str):
