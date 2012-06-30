@@ -59,7 +59,7 @@ class TestNickCommand(unittest.TestCase):
         "First NICK, USER is not received"
         self.cmd.actor.is_user.return_value = False
         self.mock_user.exists.return_value = False
-        user = Mock()
+        user = self.users[0]
         user.registered.nick = False
         user.registered.user = False
         self.mock_user.return_value = user
@@ -68,6 +68,7 @@ class TestNickCommand(unittest.TestCase):
             self.cmd.from_user('nick')
         )
         self.mock_user.assertCalledWidth('nick')
+        self.assertTrue(self.cmd.user.registered.nick)
 
     def test_registration_completed(self):
         "First NICK, USER is received"
@@ -80,6 +81,7 @@ class TestNickCommand(unittest.TestCase):
             welcome(self.cmd.actor) + [M(self.cmd.actor, 'NICK', 'nick')],
             self.cmd.from_user('nick')
         )
+        self.assertTrue(self.cmd.user.registered.nick)
 
     def test_second_before_user(self):
         "Non-first NICK, USER is not received"
@@ -92,6 +94,7 @@ class TestNickCommand(unittest.TestCase):
             M(self.cmd.actor, 'NICK', 'foobar'),
             self.cmd.from_user('foobar')
         )
+        self.assertTrue(self.cmd.user.registered.nick)
 
     def test_rename(self):
         "Non-first NICK, USER is received"
@@ -109,4 +112,5 @@ class TestNickCommand(unittest.TestCase):
             self.cmd.from_user('foobar')
         )
         server_patcher.stop()
+        self.assertTrue(self.cmd.user.registered.nick)
 

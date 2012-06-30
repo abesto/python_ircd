@@ -14,8 +14,9 @@ class UserCommand(Command):
     must_be_registered = False
 
     def from_user(self, username, hostname, servername, realname):
-        if self.actor.get_user() is None:
+        if not self.actor.is_user():
             self.actor.user = self.user = User(None)
+
         if self.user.registered.user:
             return ERR_ALREADYREGISTRED(self.actor)
 

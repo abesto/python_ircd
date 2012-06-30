@@ -21,7 +21,6 @@ class NickCommand(Command):
 
         if not self.actor.is_user():
             self.actor.user = self.user = User(to_nick)
-            self.user.save()
 
         # Nickname collision
         if User.exists(to_nick):
@@ -46,6 +45,7 @@ class NickCommand(Command):
         elif reg.user and not reg.nick:
             self.user.nickname = to_nick
             self.user.registered.nick = True
+            self.user.save()
             return welcome(self.actor) + [M(self.actor, 'NICK', to_nick)]
             #TODO: send NICK and USER to other servers
 
