@@ -103,11 +103,11 @@ user = OneOrMore(charclass(
 
 
 nickname = (letter ^ special) + \
-           (0, 8) * (letter ^ digit ^ special ^ Literal('-'))
+           (0, 8) * (letter ^ digit ^ special ^ '-')
 
 # Used as part of message
 prefix = servername ^ \
-         nickname + Optional(Literal('!') + user) + Literal('@') + host
+         nickname + Optional('!' + user) + '@' + host
 
 # Used as part of message
 command = OneOrMore(letter) ^ (3 * digit)
