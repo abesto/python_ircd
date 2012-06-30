@@ -1,4 +1,5 @@
-import abnf
+from include import abnf
+
 from models import Error
 from models.base import BaseModel
 

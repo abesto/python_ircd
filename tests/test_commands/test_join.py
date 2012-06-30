@@ -1,7 +1,7 @@
 import unittest
 from mock import *
 
-from include import Message as M
+from include.message import Message as M
 from include.numeric_responses import *
 from commands.join import JoinCommand
 

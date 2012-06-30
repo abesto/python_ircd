@@ -1,4 +1,4 @@
-from include import Message as M
+from include.message import Message as M
 
 from commands.base import Command
 

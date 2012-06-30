@@ -1,7 +1,8 @@
 from include import abnf
 from include.numeric_responses import *
 
-from models import Channel, User
+from models.channel import Channel
+from models.user import User
 
 from commands.base import Command
 

@@ -1,4 +1,4 @@
-import message
+from include.message import Message
 from models import Error
 from models.base import BaseModel
 
@@ -95,7 +95,7 @@ class Actor(BaseModel):
         self.socket_file.flush()
 
     def read(self):
-        msg = message.from_string(self.socket_file.readline())
+        msg = Message.from_string(self.socket_file.readline())
         msg.sender = self
         return msg
 

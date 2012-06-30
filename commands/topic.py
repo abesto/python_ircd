@@ -1,5 +1,7 @@
-from models import Channel, ActorCollection
 from include.numeric_responses import *
+
+from models.channel import Channel
+from models.actorcollection import ActorCollection
 
 from commands.base import Command
 

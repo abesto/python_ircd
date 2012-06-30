@@ -1,8 +1,9 @@
 from include.numeric_responses import *
-from include import Message as M
+from include.message import Message as M
 
 import models
-from models import Channel, ActorCollection
+from models.channel import Channel
+from models.actorcollection import ActorCollection
 
 from commands.base import Command
 

@@ -1,8 +1,10 @@
 from commands.base import Command
-from models import User, Server, ActorCollection
+from models.user import User
+from models.server import Server
+from models.actorcollection import ActorCollection
 
 from include import abnf
-from include import Message as M
+from include.message import Message as M
 from include.numeric_responses import *
 
 from _welcome import welcome

@@ -1,5 +1,3 @@
-import inspect
-
 from include.numeric_responses import *
 
 
