@@ -10,7 +10,10 @@ import gevent.server
 import gevent.monkey
 gevent.monkey.patch_all()
 
-from include import Dispatcher, Message, Router
+from include.dispatcher import Dispatcher
+from include.message import Message
+from include.router import Router
+
 from models import Actor
 dispatcher = Dispatcher()
 router = Router(gevent.socket.SHUT_RDWR)
@@ -25,7 +28,6 @@ def handle(socket, address):
             router.send(resp)
         except Exception, e:
             log.exception(e)
-    socket.close()
 
 host = config.get('server', 'listen_host')
 port = config.getint('server', 'listen_port')

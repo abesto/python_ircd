@@ -17,6 +17,7 @@ class Dispatcher:
         self.handlers = {}
 
     def register(self, command):
+        print repr(command.lower())
         module = importlib.import_module('commands.' + command.lower())
         handler = module.__dict__[command.capitalize() + 'Command']()
         if command != handler.command:
@@ -31,8 +32,8 @@ class Dispatcher:
         if message.command not in self.handlers:
             try:
                 self.register(message.command)
-            except ImportError:
-                log.warning('Unknown command %s. Message was: %s'
-                % (message.command, repr(message)))
+            except ImportError, e:
+                log.warning('Unknown command %s. Message was: %s. Error: %s'
+                % (message.command, repr(message), e))
                 return
         return self.handlers[message.command].handle(actor, message)
