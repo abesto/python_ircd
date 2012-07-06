@@ -17,7 +17,6 @@ class Dispatcher:
         self.handlers = {}
 
     def register(self, command):
-        print repr(command.lower())
         module = importlib.import_module('commands.' + command.lower())
         handler = module.__dict__[command.capitalize() + 'Command']()
         if command != handler.command:
