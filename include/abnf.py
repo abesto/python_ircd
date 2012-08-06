@@ -163,7 +163,7 @@ wildone = Literal('?')
 wildmany = Literal('*')
 nowild = charclass((0x01, 0x29), (0x2B, 0x3E), (0x40, 0xFF))
 noesc = charclass((0x01, 0x5B), (0x5D, 0xFF))
-mask = ZeroOrMore(nowild ^ (noesc + wildone) ^ (noesc + wildmany))
+mask = Optional(wildone ^ wildmany) + ZeroOrMore(nowild ^ (noesc + wildone) ^ (noesc + wildmany))
 
 # Fall back to regex for parsing wildcards
 matchone = '[%s-%s]' % (chr(0x01), chr(0xFF))
