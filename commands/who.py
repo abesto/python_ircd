@@ -27,6 +27,8 @@ class WhoCommand(Command):
                     RPL_WHOREPLY(self.actor, channel_user, str(channel))
                 )
         else:
+            if mask == '0':
+                mask = '*'
             parser = abnf.wildcard(mask)
             for user in User.all():
                 # TODO: add check for servername
