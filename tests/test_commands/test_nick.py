@@ -108,7 +108,7 @@ class TestNickCommand(unittest.TestCase):
         user.registered.nick = True
         user.registered.user = True
         self.assertEqual(
-            M(self.mock_actorcollection([self.cmd.actor] + mock_server.all()), str(user), 'NICK', 'foobar'),
+            M(self.mock_actorcollection([self.cmd.actor] + mock_server.all()), 'NICK', 'foobar', prefix=str(user)),
             self.cmd.from_user('foobar')
         )
         server_patcher.stop()
