@@ -27,8 +27,8 @@ class PrivmsgCommand(Command):
                          if user is not self.user]
                 resp.append(M(
                     ActorCollection(users),
-                    self.command, receiver, text,
-                    prefix=self.user))
+                    self.command, str(receiver), text,
+                    prefix=str(self.user)))
             elif User.exists(receiver):
                 resp.append(M(
                     Actor.by_user(User.get(receiver)),

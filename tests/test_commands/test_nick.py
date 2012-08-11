@@ -4,6 +4,7 @@ from mock import *
 from commands.nick import NickCommand
 from commands._welcome import welcome
 from include.numeric_responses import *
+from include.message import Message as M
 
 class TestNickCommand(unittest.TestCase):
     def setUp(self):
@@ -18,6 +19,9 @@ class TestNickCommand(unittest.TestCase):
 
         self.channel = MagicMock()
         self.channel.__str__.return_value = 'testchannel'
+
+        self.channel1 = MagicMock()
+        self.channel1.__str__.return_value = 'testchannel1'
 
         self.cmd = NickCommand()
         self.cmd.actor = Mock()
@@ -97,10 +101,14 @@ class TestNickCommand(unittest.TestCase):
         self.assertTrue(self.cmd.user.registered.nick)
 
     def test_rename(self):
-        "Non-first NICK, USER is received"
+        "Non-first NICK, USER is received, channels are notified"
         server_patcher = patch('commands.nick.Server')
         mock_server = server_patcher.start()
         mock_server.all.return_value = [Mock]
+
+        self.cmd.actor.channels = [self.channel, self.channel1]
+        self.channel.users = [Mock(), Mock()]
+        self.channel1.users = [Mock()]
 
         self.cmd.actor.is_user.return_value = True
         self.mock_user.exists.return_value = False
@@ -108,7 +116,9 @@ class TestNickCommand(unittest.TestCase):
         user.registered.nick = True
         user.registered.user = True
         self.assertEqual(
-            M(self.mock_actorcollection([self.cmd.actor] + mock_server.all()), 'NICK', 'foobar', prefix=str(user)),
+            M(self.mock_actorcollection(
+                [self.cmd.actor] + mock_server.all() + self.channel.users + self.channel1.users
+            ), 'NICK', 'foobar', prefix=str(user)),
             self.cmd.from_user('foobar')
         )
         server_patcher.stop()

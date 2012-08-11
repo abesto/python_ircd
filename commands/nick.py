@@ -4,8 +4,8 @@ from models.server import Server
 from models.actorcollection import ActorCollection
 
 from include import abnf
-from include.message import Message as M
 from include.numeric_responses import *
+from include.message import Message as M
 
 from _welcome import welcome
 
