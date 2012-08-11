@@ -24,6 +24,8 @@ def handle(socket, address):
         line = fileobj.readline()
         try:
             msg = Message.from_string(line)
+            log.debug('<= %s %s' % (repr(msg.target), repr(msg)))
+
         except Exception, e:
             log.exception(e)
             actor = Actor.by_socket(socket)
