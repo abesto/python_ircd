@@ -56,4 +56,4 @@ class NickCommand(Command):
             from_full = str(self.user)
             self.user.rename(to_nick)
             return M(ActorCollection([self.actor] + Server.all()),
-                from_full, 'NICK', to_nick)
+                'NICK', to_nick, prefix=from_full)
