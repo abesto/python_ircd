@@ -11,6 +11,8 @@ class BaseModel(object):
 
     @classmethod
     def all(cls):
+        if not cls in BaseModel.objects:
+            BaseModel.objects[cls] = {}
         return BaseModel.objects[cls].values()
 
     @classmethod
