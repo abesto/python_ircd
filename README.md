@@ -15,6 +15,7 @@ The basic framework is mostly stable. Command handlers get an abstract message o
  * [RFC2812 - Internet Relay Chat: Client Protocol](http://www.irchelp.org/irchelp/rfc/rfc2812.txt):
   * NICK: 100%
   * USER: 100%
+  * PART: 100%
   * JOIN: no PART all if channel is '0', no channel key checking
   * PRIVMSG: no support for wildcards, some checks missing
   * WHO: multiple parameters not supported

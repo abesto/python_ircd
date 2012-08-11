@@ -112,6 +112,8 @@ def ERR_NICKNAMEINUSE(nickname, target):
 def ERR_NICKCOLLISION(nickname, target):
     return _M(target, '436', nickname, 'Nickname collision KILL')
 
+def ERR_NOTONCHANNEL(channel, target):
+    return _M(target, '442', channel, "You're not on that channel")
 
 def ERR_NOTREGISTERED(target):
     return _M(target, '451', 'You have not registered')
