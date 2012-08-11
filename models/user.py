@@ -21,6 +21,16 @@ class User(BaseModel):
     def rename(self, to):
         self.set_key(to)
 
+    def join(self, channel):
+        if channel not in self.channels:
+            self.channels.append(channel)
+            channel.join(self)
+
+    def part(self, channel):
+        if channel in self.channels:
+            self.channels.remove(channel)
+            channel.part(self)
+
     def _set_key(self, new_key):
         self.nickname = new_key
 

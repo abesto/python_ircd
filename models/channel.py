@@ -29,7 +29,12 @@ class Channel(BaseModel):
         return str(self)
 
     def join(self, user):
-        self.users.append(user)
+        if user not in self.users:
+            self.users.append(user)
+            user.join(self)
+
 
     def part(self, user):
-        self.users.remove(user)
+        if user in self.users:
+            self.users.remove(user)
+            user.part(self)

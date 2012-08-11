@@ -52,8 +52,11 @@ class NickCommand(Command):
             return welcome(self.actor) + [M(self.actor, 'NICK', to_nick)]
             #TODO: send NICK and USER to other servers
 
+        # rename
         elif reg.user and reg.nick:
             from_full = str(self.user)
             self.user.rename(to_nick)
-            return M(ActorCollection([self.actor] + Server.all()),
-                'NICK', to_nick, prefix=from_full)
+            targets = [self.actor] + Server.all()
+            for channel in self.user.channels:
+                targets += channel.users
+            return M(ActorCollection(targets), 'NICK', to_nick, prefix=from_full)
