@@ -4,6 +4,8 @@ from include.message import Message as M
 from models.channel import Channel
 from models.actorcollection import ActorCollection
 
+from include.flatten import flatten
+
 from commands.base import Command
 
 
@@ -15,16 +17,13 @@ class Parameters:
 
     def parse_channels(self, channels):
         self.part_all = (channels == '0')
-        self.set_channels(channels)
-
-    def parse_keys(self, keys):
-        self.keys = keys.split(',')
-
-    def set_channels(self, channels):
         if self.part_all:
             self.channel_names = []
         else:
             self.channel_names = channels.split(',')
+
+    def parse_keys(self, keys):
+        self.keys = keys.split(',')
 
     def build_key_dict(self):
         self.key_dict = dict(zip(
@@ -38,41 +37,27 @@ class Parameters:
         return None
 
 
-class PartitionedChannelNames:
-    def __init__(self, valid, invalid):
-        self.valid = valid
-        self.invalid = invalid
-
-    @classmethod
-    def from_list(cls, names):
-        valid = []
-        invalid = []
-        for name in names:
-            if Channel.is_valid_name(name):
-                valid.append(name)
-            else:
-                invalid.append(name)
-        return PartitionedChannelNames(valid, invalid)
-
-
 class JoinCommand(Command):
     required_parameter_count = 1
     command = 'JOIN'
 
     def from_user(self, channel_names_str, keys_str='', *_):
         self.parameters = Parameters(channel_names_str, keys_str)
+        return self.process_parameters()
+
+    def process_parameters(self):
         if self.parameters.part_all:
             return self.part_all_channels()
-        return self.join_channels()
+        return flatten([
+            self.join_or_error(channel_name)
+            for channel_name in self.parameters.channel_names
+        ])
 
-    def join_channels(self):
-        self.partition_channel_names()
-        ret = []
-        for channel_name in self.partitioned_channel_names.valid:
-            ret += self.join(channel_name)
-        for channel_name in self.partitioned_channel_names.invalid:
-            ret += self.no_such_channel_message(channel_name)
-        return ret
+    def join_or_error(self, channel_name):
+        if Channel.is_valid_name(channel_name):
+            return self.join(channel_name)
+        else:
+            return self.no_such_channel_message(channel_name)
 
     def join(self, channel_name):
         channel = self.get_channel(channel_name)
@@ -83,12 +68,7 @@ class JoinCommand(Command):
 
     def part_all_channels(self):
         # TODO
-        pass
-
-    def partition_channel_names(self):
-        self.partitioned_channel_names = PartitionedChannelNames.from_list(
-            self.parameters.channel_names
-        )
+        return []
 
     def got_valid_key_for(self, channel):
         # TODO based on self.parameters.get_key_for_channel_name and channel
