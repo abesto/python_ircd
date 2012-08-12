@@ -52,6 +52,8 @@ class Command(object):
             return self.from_server(*message.parameters)
         elif self.actor.is_user():
             self.user = self.actor.get_user()
+            if not self.user_registration_command and (not self.user.registered.nick or not self.user.registered.user):
+                return ERR_NOTREGISTERED(self.actor)
             message.prefix = str(self.user)
             return self.from_user(*message.parameters)
         else:
