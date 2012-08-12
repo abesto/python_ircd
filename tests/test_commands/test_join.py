@@ -64,16 +64,9 @@ class TestJoinCommand(unittest.TestCase):
         self.channel.join.assert_called_once_with(self.cmd.user)
 
     def test_no_such_channel(self):
-        models_patcher = patch('commands.join.models')
-        models = models_patcher.start()
-        class Error(Exception):
-            pass
-        models.Error  = Error
+        self.mock_channel.is_valid_name.return_value = False
         self.cmd.user = self.users[1]
-        self.mock_channel.exists.return_value = False
-        self.mock_channel.side_effect = Error
         self.assertListEqual(
             [ERR_NOSUCHCHANNEL('#channel', self.cmd.actor)],
             self.cmd.from_user('#channel')
         )
-        models_patcher.stop()

@@ -11,9 +11,10 @@ class ChannelMode(object):
 
 class Channel(BaseModel):
     def __init__(self, name):
-        raw = abnf.parse(name, abnf.channel)
-        if not raw:
+        if not self.is_valid_name(name):
             raise Error('Erroneous channel name')
+
+        raw = abnf.parse(name, abnf.channel)
         self.mode = ChannelMode
         self.prefix = raw[0]
         self.id = raw[1] if self.prefix == '!' else None
@@ -24,6 +25,10 @@ class Channel(BaseModel):
 
     def __str__(self):
         return self.prefix + self.name
+
+    @staticmethod
+    def is_valid_name(name):
+        return bool(abnf.parse(name, abnf.channel))
 
     def get_key(self):
         return str(self)

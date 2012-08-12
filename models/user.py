@@ -34,7 +34,6 @@ class User(BaseModel):
     def delete(self):
         for channel in self.channels:
             self.part(channel)
-        super(User, self).delete()
 
     def _set_key(self, new_key):
         self.nickname = new_key
