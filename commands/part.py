@@ -12,7 +12,7 @@ class PartCommand(Command):
     required_parameter_count = 1
     command = 'PART'
 
-    def from_user(self, channels, msg='Leaving...', *_):
+    def from_user(self, channels, msg='leaving', *_):
         channels = channels.split(',')
 
         ret = []
