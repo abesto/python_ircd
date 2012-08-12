@@ -40,7 +40,7 @@ def handle(socket, address):
                     Message(actor, 'NOTICE', '---'),
                     Message(actor, 'NOTICE', 'Closing connection.')
                 ]
-                quit_resp = dispatcher.dispatch(socket, Message(None, 'QUIT', 'Invalid message'))
+                quit_resp = dispatcher.dispatch(socket, Message(None, 'QUIT', 'Protocol error'))
                 if isinstance(quit_resp, list):
                     resp += quit_resp
                 else:

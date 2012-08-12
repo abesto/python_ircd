@@ -9,6 +9,7 @@ class Actor(BaseModel):
     def __init__(self, socket, **kwargs):
         self.password = None
         self.disconnected = False
+        self.connection_dropped = False
 
         self.socket = socket
         self.socket_file = socket.makefile('rw')
@@ -87,17 +88,18 @@ class Actor(BaseModel):
     def write(self, message):
         if self.is_user() and message.add_nick:
             message.parameters.insert(0, self.get_user().nickname)
-        self.socket_file.write(message)
+        try:
+            self.socket_file.write(message)
+        except:
+            self.connection_dropped = True
         if self.is_user() and message.add_nick:
             message.parameters = message.parameters[1:]
 
     def flush(self):
-        self.socket_file.flush()
-
-    def read(self):
-        msg = Message.from_string(self.socket_file.readline())
-        msg.sender = self
-        return msg
+        try:
+            self.socket_file.flush()
+        except:
+            self.connection_dropped = True
 
     def disconnect(self):
         self.disconnected = True

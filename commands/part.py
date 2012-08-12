@@ -1,7 +1,6 @@
 from include.numeric_responses import *
 from include.message import Message as M
 
-import models
 from models.channel import Channel
 from models.actorcollection import ActorCollection
 

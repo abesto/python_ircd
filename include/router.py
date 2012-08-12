@@ -5,6 +5,8 @@ import itertools
 log = logging.getLogger(__name__)
 
 from config import config
+from commands.quit import QuitCommand
+from include.message import Message as M
 
 
 class Error(Exception):
@@ -36,6 +38,12 @@ class Router(object):
             target.flush()
 
         for actor in itertools.chain.from_iterable(actors):
+            if actor.connection_dropped:
+                if actor.is_user():
+                    cmd = QuitCommand()
+                    self.send(cmd.handle(actor, M(None, 'QUIT', 'Connection lost')))
+                # TODO: is_server
+
             if actor.disconnected:
                 try:
                     actor.socket.shutdown(self.shutdown_signal)
