@@ -43,9 +43,6 @@ class JoinCommand(Command):
 
     def from_user(self, channel_names_str, keys_str='', *_):
         self.parameters = Parameters(channel_names_str, keys_str)
-        return self.process_parameters()
-
-    def process_parameters(self):
         if self.parameters.part_all:
             return self.part_all_channels()
         return flatten([
