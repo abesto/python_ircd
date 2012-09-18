@@ -7,6 +7,15 @@ from commands.join import JoinCommand
 
 
 class TestJoinCommand(unittest.TestCase):
+    def setUp(self):
+        self.setup_users()
+        self.setup_channel()
+        self.setup_join_command()
+        self.setup_mocks()
+
+    def tearDown(self):
+        self.teardown_mocks()
+
     def test_with_topic(self):
         self.join_success(channel_topic='channel topic', response_builder=self.joined_with_topic_response)
 
@@ -39,15 +48,6 @@ class TestJoinCommand(unittest.TestCase):
 
     def joined_with_topic_response(self):
         return self.joined_without_topic_response() + [RPL_TOPIC(self.cmd.actor, self.channel)]
-
-    def setUp(self):
-        self.setup_users()
-        self.setup_channel()
-        self.setup_join_command()
-        self.setup_mocks()
-
-    def tearDown(self):
-        self.teardown_mocks()
 
     def setup_users(self):
         self.old_user = self.create_user('old')
