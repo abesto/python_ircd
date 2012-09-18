@@ -8,6 +8,9 @@ class Command(object):
     server_registration_command = False
 
     def __init__(self):
+        self.cleanup()
+
+    def cleanup(self):
         self.message = None
         self.actor = None
         self.user = None
@@ -23,6 +26,10 @@ class Command(object):
         raise NotImplementedError
 
     def handle(self, actor, message):
+        self.cleanup()
+        self.actor = actor
+        self.message = message
+
         if self.required_parameter_count is None:
             raise NotImplementedError(
                 'required_parameter_count must be set on Handler subclass')
@@ -31,9 +38,6 @@ class Command(object):
                 'command must be set on Handler subclass')
         if self.command != message.command:
             raise "Wrong handler for " + repr(message)
-
-        self.actor = actor
-        self.message = message
 
         if not actor.is_user() and not actor.is_server():
             if self.user_registration_command and self.server_registration_command:
