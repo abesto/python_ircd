@@ -14,7 +14,7 @@ class Message(object):
         self.command = command
         self.parameters = filter(lambda x: x is not None, list(parameters))
         self.target = target
-        self.prefix = kwargs['prefix'] if 'prefix' in kwargs else None
+        self.prefix = str(kwargs['prefix']) if 'prefix' in kwargs else None
         self.add_nick = kwargs['add_nick'] if 'add_nick' in kwargs else False
 
     @staticmethod

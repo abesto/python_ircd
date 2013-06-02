@@ -12,9 +12,9 @@ class TopicCommand(Command):
 
     def from_user(self, channel_name, topic=None, *_):
         # TODO: ERR_NOCHANMODES, ERR_CHANOPRIVSNEEDED
-        user_in_channel = self.user not in Channel.get(channel_name).users
+        user_in_channel = self.user in Channel.get(channel_name).users
         if not (Channel.exists(channel_name) and user_in_channel):
-            return ERR_NOTONCHANNEL(self.actor, channel_name)
+            return ERR_NOTONCHANNEL(channel_name, self.actor)
         channel = Channel.get(channel_name)
         if topic is None:
             if channel.topic is None:

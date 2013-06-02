@@ -22,11 +22,11 @@ class BaseModel(object):
 
     def save(self):
         exists = self.__class__.exists(self.get_key())
-        not_self = self.__class__.get(self.get_key()) is not self
-        if exists and not_self:
+        not_self = exists and self.__class__.get(self.get_key()) is not self
+        if not_self:
             raise Error('%s with key %s already exists but '
                         'is not the object to be saved' % (
-                self.__class__.__name__, self.get_key()
+                        self.__class__.__name__, self.get_key()
             ))
         if not self.__class__ in BaseModel.objects:
             BaseModel.objects[self.__class__] = {}

@@ -25,18 +25,20 @@ def handle(socket, address):
         try:
             msg = Message.from_string(line)
             log.debug('<= %s %s' % (repr(msg.target), repr(msg)))
-
+            resp = dispatcher.dispatch(socket, msg)
         except Exception, e:
             log.exception(e)
             actor = Actor.by_socket(socket)
             if actor.is_user() and actor.get_user().registered.nick and actor.get_user().registered.user:
                 resp = [
-                    Message(actor, 'NOTICE', 'The message your client has just sent could not be parsed. If you think'),
-                    Message(actor, 'NOTICE', 'this is a problem with the server, please open an issue at:'),
+                    Message(actor, 'NOTICE', 'The message your client has just sent could not be parsed or processed.'),
+                    Message(actor, 'NOTICE', 'If this is a problem with the server, please open an issue at:'),
                     Message(actor, 'NOTICE', 'https://github.com/abesto/python-ircd'),
                     Message(actor, 'NOTICE', '---'),
                     Message(actor, 'NOTICE', 'The message sent by your client was:'),
                     Message(actor, 'NOTICE', line.strip("\n")),
+                    Message(actor, 'NOTICE', 'The error was:'),
+                    Message(actor, 'NOTICE', str(e)),
                     Message(actor, 'NOTICE', '---'),
                     Message(actor, 'NOTICE', 'Closing connection.')
                 ]
@@ -48,8 +50,6 @@ def handle(socket, address):
             else:
                 resp = Message(actor, 'ERROR')
             Actor.by_socket(socket).disconnect()
-        else:
-            resp = dispatcher.dispatch(socket, msg)
 
         try:
             router.send(resp)

@@ -43,3 +43,4 @@ class Channel(BaseModel):
         if user in self.users:
             self.users.remove(user)
             user.part(self)
+

@@ -8,6 +8,8 @@ from config import config
 
 class Client(object):
     test_case = None
+    timeout = 0.2
+    timeout_step = 0.001
 
     def __init__(self, name):
         self.name = name
@@ -25,7 +27,7 @@ class Client(object):
 
     def expect(self, line):
         got = None
-        timeout = 2.0
+        timeout = self.timeout
         while got != line and timeout > 0:
             try:
                 got = self.socket_file.readline().strip()
@@ -34,8 +36,8 @@ class Client(object):
             except socket.error, e:
                 if e.errno != errno.EAGAIN:
                     raise
-                time.sleep(0.001)
-                timeout -= 0.001
+                time.sleep(self.timeout_step)
+                timeout -= self.timeout_step
         self.test_case.assertEqual(got, line)
 
     def __str__(self):
