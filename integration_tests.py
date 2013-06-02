@@ -108,3 +108,10 @@ class HappyTests(unittest.TestCase):
         self.c1 = Client(self.c1.name)
         self.test_login_nick_first(self.c1)
 
+    def test_direct_message(self):
+        self.test_login_nick_first(self.c1)
+        self.test_login_nick_first(self.c2)
+        msg = 'test direct message'
+        self.c1.write('PRIVMSG %s :%s' % (self.c2.name, msg))
+        self.c2.expect(':{c}!{c}@localhost. PRIVMSG {rc} :{msg}'.format(
+            c=self.c1, rc=self.c2, msg=msg))

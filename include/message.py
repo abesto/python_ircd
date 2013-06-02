@@ -38,12 +38,11 @@ class Message(object):
             msg.prefix = raw[0]
         return msg
 
-
     def __str__(self):
         ret = ''
         if self.prefix is not None:
             ret += ':%s ' % self.prefix
-        ret += self.command
+        ret += str(self.command)
         for param in self.parameters[:-1]:
             if param is not None and ' ' in param:
                 raise Error('Space can only appear in the very last parameter')

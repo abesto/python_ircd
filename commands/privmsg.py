@@ -32,8 +32,8 @@ class PrivmsgCommand(Command):
             elif User.exists(receiver):
                 resp.append(M(
                     Actor.by_user(User.get(receiver)),
-                    User.get(receiver),
-                    self.user.nickname, self.command, receiver, text))
+                    self.command, str(receiver), text,
+                    prefix=str(self.user)))
             # TODO: Implement wildcards
             # TODO: check for ERR_WILDTOPLEVEL, RPL_AWAY, ERR_NOTOPLEVEL
             else:
