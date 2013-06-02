@@ -1,4 +1,3 @@
-from include.message import Message
 from models import Error
 from models.base import BaseModel
 

@@ -1,6 +1,7 @@
 import unittest
 import socket
 import time
+import errno
 
 from config import config
 
@@ -30,7 +31,9 @@ class Client(object):
                 got = self.socket_file.readline().strip()
                 self.responses[-1].append(got)
                 print '-> [%s] %s' % (self.name, got)
-            except socket.error:
+            except socket.error, e:
+                if e.errno != errno.EAGAIN:
+                    raise
                 time.sleep(0.001)
                 timeout -= 0.001
         self.test_case.assertEqual(got, line)
@@ -97,4 +100,11 @@ class HappyTests(unittest.TestCase):
         rc.expect(':{c}!{c}@localhost. PRIVMSG {channel} :{msg}'.format(
             c=c, channel=channel, msg=msg))
 
+    def test_login_quit_login(self):
+        """QUITting releases the nick"""
+        self.test_login_nick_first(self.c1)
+        self.c1.write('QUIT leaving')
+        self.c1.expect(':localhost ERROR')
+        self.c1 = Client(self.c1.name)
+        self.test_login_nick_first(self.c1)
 
