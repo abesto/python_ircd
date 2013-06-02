@@ -64,8 +64,10 @@ class NickCommand(Command):
             return ERR_NONICKNAMEGIVEN(self.actor)
 
     def check_invalid_nick(self):
-        if len(self.params.nick) > 9 or abnf.parse(self.params.nick, abnf.nickname) != self.params.nick:
-            return ERR_ERRONEUSNICKNAME(self.params.nick.replace(' ', '_'), self.actor)
+        parsed_nick = abnf.parse(self.params.nick, abnf.nickname)
+        if len(self.params.nick) > 9 or parsed_nick != self.params.nick:
+            nick = self.params.nick.replace(' ', '_')
+            return ERR_ERRONEUSNICKNAME(nick, self.actor)
 
     def check_network_nickcollision(self):
         # TODO: check for ERR_NICKCOLLISION
@@ -120,6 +122,6 @@ class NickCommand(Command):
         targets = [self.actor] + Server.all()
         for channel in self.user.channels:
             targets += channel.users
-        return M(ActorCollection(targets), 'NICK', self.params.nick, prefix=from_full)
-
-
+        return M(ActorCollection(targets),
+                 'NICK', self.params.nick,
+                 prefix=from_full)

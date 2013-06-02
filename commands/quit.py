@@ -13,7 +13,9 @@ class QuitCommand(Command):
         for channel in self.user.channels:
             channel.part(self.user)
             ret.append(
-                M(ActorCollection(channel.users), 'PART', str(channel), message, prefix=str(self.user))
+                M(ActorCollection(channel.users),
+                  'PART', str(channel), message,
+                  prefix=str(self.user))
             )
         self.user.delete()
         self.actor.disconnect()

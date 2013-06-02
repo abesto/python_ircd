@@ -12,6 +12,7 @@ log = logging.getLogger(__name__)
 class Error(Exception):
     pass
 
+
 class Dispatcher:
     def __init__(self):
         self.handlers = {}
@@ -23,7 +24,6 @@ class Dispatcher:
             raise Error('Command mismatch. Incoming: %s. Handler: %s.'
             % (command, handler.command))
         self.handlers[handler.command] = handler
-
 
     def dispatch(self, socket, message):
         actor = Actor.by_socket(socket)

@@ -3,6 +3,7 @@ from include import abnf
 from models import Error
 from models.base import BaseModel
 
+
 class ChannelMode(object):
     def __init__(self):
         self.distributed = True
@@ -37,7 +38,6 @@ class Channel(BaseModel):
         if user not in self.users:
             self.users.append(user)
             user.join(self)
-
 
     def part(self, user):
         if user in self.users:

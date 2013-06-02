@@ -80,7 +80,9 @@ class JoinCommand(Command):
 
     def join_message(self, channel):
         ret = [
-            M(ActorCollection(channel.users), 'JOIN', str(channel), prefix=self.user),
+            M(ActorCollection(channel.users),
+              'JOIN', str(channel),
+              prefix=self.user),
             RPL_NAMEREPLY(self.actor, channel),
             RPL_ENDOFNAMES(self.actor)
         ]
@@ -96,4 +98,3 @@ class JoinCommand(Command):
             channel = Channel(channel_name)
             channel.save()
         return channel
-

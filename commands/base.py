@@ -40,9 +40,9 @@ class Command(object):
             raise "Wrong handler for " + repr(message)
 
         if not actor.is_user() and not actor.is_server():
-            if self.user_registration_command and self.server_registration_command:
-                return self.common()
-            elif self.user_registration_command:
+            if self.user_registration_command:
+                if self.server_registration_command:
+                    return self.common()
                 return self.from_user(*message.parameters)
             elif self.server_registration_command:
                 return self.from_server(*message.parameters)
@@ -56,7 +56,8 @@ class Command(object):
             return self.from_server(*message.parameters)
         elif self.actor.is_user():
             self.user = self.actor.get_user()
-            if not self.user_registration_command and (not self.user.registered.nick or not self.user.registered.user):
+            registered = self.user.registered.both
+            if not (self.user_registration_command or registered):
                 return ERR_NOTREGISTERED(self.actor)
             message.prefix = str(self.user)
             return self.from_user(*message.parameters)

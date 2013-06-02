@@ -3,8 +3,10 @@ from models.server import Server
 from models.user import User
 import models
 
+
 class Error(models.Error):
     pass
+
 
 class ActorCollection(object):
     def __init__(self, children):
@@ -19,7 +21,7 @@ class ActorCollection(object):
             elif isinstance(child, ActorCollection):
                 self.children += child.children
             else:
-                raise Error('Don\'t know what to do with ' + str(child.__class__))
+                raise Error('Don\'t know what to do with %s' + child.__class__)
 
     def write(self, message):
         for child in self.children:

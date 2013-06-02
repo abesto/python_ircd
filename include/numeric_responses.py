@@ -9,17 +9,17 @@ def _M(*args, **kwargs):
 
 def RPL_WELCOME(target):
     return _M(target, '001', 'Welcome to the Internet Relay Network %s'
-    % str(target.get_user()))
+                             % str(target.get_user()))
 
 
 def RPL_YOURHOST(target):
     return _M(target, '002', 'Your host is %s running an experimental server'
-    % config.get('server', 'servername'))
+                             % config.get('server', 'servername'))
 
 
 def RPL_CREATED(target):
     return _M(target, '003', 'This server was created %s'
-    % config.get('server', 'created'))
+                             % config.get('server', 'created'))
 
 
 def RPL_WHOREPLY(target, user, mask):
@@ -32,8 +32,7 @@ def RPL_WHOREPLY(target, user, mask):
         target, '352', mask, user.username, user.hostname,
         config.get('server', 'servername'), user.nickname,
         # TODO: more flags, if needed
-        'G' if user.away else 'H', '0 ' + user.realname
-    )
+        'G' if user.away else 'H', '0 ' + user.realname)
 
 
 def RPL_ENDOFWHO(target, mask):
@@ -112,8 +111,10 @@ def ERR_NICKNAMEINUSE(nickname, target):
 def ERR_NICKCOLLISION(nickname, target):
     return _M(target, '436', nickname, 'Nickname collision KILL')
 
+
 def ERR_NOTONCHANNEL(channel, target):
     return _M(target, '442', channel, "You're not on that channel")
+
 
 def ERR_NOTREGISTERED(target):
     return _M(target, '451', 'You have not registered')

@@ -37,9 +37,9 @@ class Message(object):
         if len(params) > 0 and ' ' in params[-1]:
             params[-1] = ':%s' % params[-1]
         return '{prefix}{command} {params}\r\n'.format(
-            prefix = ':%s ' % self.prefix if self.prefix is not None else '',
-            command = str(self.command),
-            params = ' '.join(params)
+            prefix=':%s ' % self.prefix if self.prefix is not None else '',
+            command=str(self.command),
+            params=' '.join(params)
         )
 
     def __repr__(self):
@@ -51,4 +51,3 @@ class Message(object):
         and self.command == other.command \
         and self.parameters == other.parameters \
         and self.target == other.target
-

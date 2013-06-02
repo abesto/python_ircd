@@ -61,3 +61,6 @@ class RegistrationStatus(object):
         self.nick = False
         self.user = False
 
+    @property
+    def both(self):
+        return self.nick and self.user

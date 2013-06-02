@@ -15,9 +15,9 @@ class Actor(BaseModel):
 
         self._server = None
         self._user = None
-        if kwargs.has_key('user'):
+        if 'user' in kwargs:
             self.user = kwargs['user']
-        if kwargs.has_key('server'):
+        if 'server' in kwargs:
             self.server = kwargs['server']
 
     # Model stuff
@@ -57,14 +57,14 @@ class Actor(BaseModel):
     def __setattr__(self, key, value):
         if key == 'server':
             if self.is_user():
-                raise Error('only one of user and server may be passed to Actor')
+                raise Error('user XOR server must be passed to Actor')
             if value.actor:
                 raise Error('server already has an actor set')
             self._server = value
             self._server.actor = self
         elif key == 'user':
             if self.is_server():
-                raise Error('only one of user and server may be passed to Actor')
+                raise Error('user XOR server must be passed to Actor')
             if hasattr(value, 'actor'):
                 raise Error('user already has an actor set')
             self._user = value
@@ -105,4 +105,3 @@ class Actor(BaseModel):
 
     def __iter__(self):
         return iter([self])
-

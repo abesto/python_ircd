@@ -41,8 +41,9 @@ class Router(object):
             if actor.connection_dropped:
                 if actor.is_user():
                     cmd = QuitCommand()
-                    self.send(cmd.handle(actor, M(None, 'QUIT', 'Connection lost')))
+                    message = M(None, 'QUIT', 'Connection lost')
                 # TODO: is_server
+                self.send(cmd.handle(actor, message))
 
             if actor.disconnected:
                 try:
@@ -50,4 +51,3 @@ class Router(object):
                 except:
                     pass
                 actor.socket.close()
-
