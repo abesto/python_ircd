@@ -24,19 +24,15 @@ class Client(object):
 
     def expect(self, line):
         got = None
-        while got != line:
+        timeout = 2.0
+        while got != line and timeout > 0:
             try:
                 got = self.socket_file.readline().strip()
+                self.responses[-1].append(got)
+                print '-> [%s] %s' % (self.name, got)
             except socket.error:
-                time.sleep(1)
-                try:
-                    got = self.socket_file.readline().strip()
-                except socket.error, e:
-                    self.test_case.fail('Socket error, probably didn\'t get response in time. Was waiting for line:\n' +
-                                        line + '\n' +
-                                        'Error: %s' % e)
-            print '-> [%s] %s' % (self.name, got)
-            self.responses[-1].append(got)
+                time.sleep(0.001)
+        self.test_case.assertEqual(got, line)
 
     def __str__(self):
         return self.name
