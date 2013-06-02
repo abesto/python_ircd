@@ -150,3 +150,8 @@ class ServerClientTests(unittest.TestCase):
         self.c1.expect(':localhost 331 {c} {ch} :No topic is set'.format(
             c=self.c1.name, ch=channel))
 
+    def test_change_topic_no_such_channel(self):
+        self.test_login_nick_first(self.c3)
+        self.c3.write('TOPIC #foo baz')
+        self.c3.expect(':localhost 401 {c} #foo :No such channel'.format(c=self.c3.name))
+
