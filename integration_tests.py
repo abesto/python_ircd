@@ -57,9 +57,9 @@ class ServerClientTests(unittest.TestCase):
 
     def setUp(self):
         self._increment_n()
-        self.c1 = Client('alice-%s' % self.n)
+        self.c1 = Client('al-%s' % self.n)
         self.c2 = Client('bob-%s' % self.n)
-        self.c3 = Client('charlie-%s' % self.n)
+        self.c3 = Client('clair-%s' % self.n)
         Client.test_case = self
 
     def test_login_nick_first(self, c=None):
@@ -140,4 +140,13 @@ class ServerClientTests(unittest.TestCase):
         self.test_join(self.c3, channel, [self.c1, self.c2])
         self.c3.expect(':localhost 332 {c} {ch} {topic}'.format(
             c=self.c3, ch=channel, topic=topic))
+
+    def test_clear_topic(self):
+        channel = '#ch-%s' % self.n
+        self.test_join(self.c1, channel)
+        self.c1.write('TOPIC %s %s' % (channel, ':old topic'))
+        self.c1.write('TOPIC %s :' % channel)
+        self.c1.write('TOPIC %s' % channel)
+        self.c1.expect(':localhost 331 {c} {ch} :No topic is set'.format(
+            c=self.c1.name, ch=channel))
 
