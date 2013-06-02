@@ -32,6 +32,7 @@ class Client(object):
                 print '-> [%s] %s' % (self.name, got)
             except socket.error:
                 time.sleep(0.001)
+                timeout -= 0.001
         self.test_case.assertEqual(got, line)
 
     def __str__(self):
