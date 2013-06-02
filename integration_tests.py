@@ -115,3 +115,14 @@ class HappyTests(unittest.TestCase):
         self.c1.write('PRIVMSG %s :%s' % (self.c2.name, msg))
         self.c2.expect(':{c}!{c}@localhost. PRIVMSG {rc} :{msg}'.format(
             c=self.c1, rc=self.c2, msg=msg))
+
+    def test_nick_change(self):
+        self.test_login_nick_first(self.c1)
+        self.c1.write('NICK foo')
+        self.c1.expect(':{c}!{c}@localhost. NICK foo'.format(c=self.c1))
+
+    def test_nick_change_taken(self):
+        self.test_login_nick_first(self.c1)
+        self.test_login_nick_first(self.c2)
+        self.c1.write('NICK %s' % self.c2.name)
+        self.c1.expect(':localhost 433 %s %s :Nickname is already in use' % (self.c1.name, self.c2.name))
