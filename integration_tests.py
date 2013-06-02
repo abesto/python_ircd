@@ -42,7 +42,7 @@ class Client(object):
         return self.name
 
 
-class HappyTests(unittest.TestCase):
+class ServerClientTests(unittest.TestCase):
     n = 0
 
     @classmethod
@@ -126,3 +126,16 @@ class HappyTests(unittest.TestCase):
         self.test_login_nick_first(self.c2)
         self.c1.write('NICK %s' % self.c2.name)
         self.c1.expect(':localhost 433 %s %s :Nickname is already in use' % (self.c1.name, self.c2.name))
+
+    def test_topic(self):
+        channel = '#ch-%s' % self.n
+        topic = ':This is the old shit'
+        self.test_join(self.c1, channel)
+        self.test_join(self.c2, channel, [self.c1])
+        self.c1.write('TOPIC %s %s' % (channel, topic))
+        self.c2.expect(':{c}!{c}@localhost. TOPIC {ch} {topic}'.format(
+            c=self.c1, ch=channel, topic=topic))
+        self.test_join(self.c3, channel, [self.c1, self.c2])
+        self.c3.expect(':localhost 332 {c} {ch} {topic}'.format(
+            c=self.c3, ch=channel, topic=topic))
+
