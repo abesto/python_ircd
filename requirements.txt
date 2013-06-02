@@ -1,5 +1,5 @@
-gevent
-dnspython
-pyparsing
-PyDispatcher
+gevent==0.13.8
+dnspython==1.10.0
+pyparsing==1.5.7
+PyDispatcher==2.0.3
 mock
