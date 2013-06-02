@@ -11,52 +11,39 @@ class Message(object):
         for parameter in parameters[:-1]:
             if ' ' in parameter:
                 raise Error('Space can only appear in the very last parameter')
-        self.prefix = kwargs['prefix'] if 'prefix' in kwargs else None
         self.command = command
         self.parameters = filter(lambda x: x is not None, list(parameters))
         self.target = target
+        self.prefix = kwargs['prefix'] if 'prefix' in kwargs else None
         self.add_nick = kwargs['add_nick'] if 'add_nick' in kwargs else False
 
     @staticmethod
-    def from_string(str):
-        """
-        @type str string
-        """
-        if len(str) > 512:
+    def from_string(string):
+        if len(string) > 512:
             raise Error('Message must not be longer than 512 characters')
-        raw = abnf.parse(str, abnf.message)
+        raw = abnf.parse(string, abnf.message)
         if not raw:
-            raise Error('Failed to parse message: ' + str)
-        msg = Message(
-            None,
-            raw[1].upper()
-            if config.get('parser', 'lowercase_commands')
-            else raw[1],
-            *raw[2:]
-        )
-        if len(raw[0]) > 0:
-            msg.prefix = raw[0]
+            raise Error('Failed to parse message: ' + string)
+        if config.get('parser', 'lowercase_commands'):
+            raw[1] = raw[1].upper()
+        msg = Message(None, prefix=raw.pop(0), *raw)
         return msg
 
     def __str__(self):
-        ret = ''
-        if self.prefix is not None:
-            ret += ':%s ' % self.prefix
-        ret += str(self.command)
-        for param in self.parameters[:-1]:
+        params = self.parameters[:]
+        for param in params[:-1]:
             if param is not None and ' ' in param:
                 raise Error('Space can only appear in the very last parameter')
-            ret += ' %s' % param
-        if len(self.parameters) > 0:
-            ret += ' '
-            if ' ' in self.parameters[-1]:
-                ret += ':'
-            ret += self.parameters[-1]
-        return ret + '\r\n'
+        if len(params) > 0 and ' ' in params[-1]:
+            params[-1] = ':%s' % params[-1]
+        return '{prefix}{command} {params}\r\n'.format(
+            prefix = ':%s ' % self.prefix if self.prefix is not None else '',
+            command = str(self.command),
+            params = ' '.join(params)
+        )
 
     def __repr__(self):
-        ret = "'" + str(self)[:-2] + "'"
-        return ret
+        return "'%s'" % str(self)[:-2]
 
     def __eq__(self, other):
         return isinstance(other, Message) \
