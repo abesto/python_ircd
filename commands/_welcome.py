@@ -3,12 +3,14 @@ from config import config
 
 
 def welcome(actor):
-    f = open(config.get('server', 'motd_file'), 'r')
     ret = [RPL_WELCOME(actor),
            RPL_YOURHOST(actor),
            RPL_CREATED(actor),
            RPL_MOTDSTART(actor)]
-    ret += [RPL_MOTD(actor, line.strip()) for line in f]
-    f.close()
+    try:
+        with open(config.get('server', 'motd_file'), 'r') as f:
+            ret += [RPL_MOTD(actor, line.strip()) for line in f]
+    except IOError:
+        pass
     ret.append(RPL_ENDOFMOTD(actor))
     return ret
