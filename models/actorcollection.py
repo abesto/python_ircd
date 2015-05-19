@@ -22,6 +22,7 @@ class ActorCollection(object):
                 self.children += child.children
             else:
                 raise Error('Don\'t know what to do with %s' + child.__class__)
+        self.children = frozenset(self.children)
 
     def write(self, message):
         for child in self.children:
@@ -58,3 +59,6 @@ class ActorCollection(object):
 
     def __iter__(self):
         return iter(self.children)
+
+    def __hash__(self):
+        return hash(self.children)

@@ -3,3 +3,4 @@ dnspython==1.12.0
 pyparsing==1.5.7
 PyDispatcher==2.0.3
 mock
+six

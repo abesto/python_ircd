@@ -26,7 +26,7 @@ def handle(socket, address):
             msg = Message.from_string(line)
             log.debug('<= %s %s' % (repr(msg.target), repr(msg)))
             resp = dispatcher.dispatch(socket, msg)
-        except Exception, e:
+        except Exception as e:
             log.exception(e)
             actor = Actor.by_socket(socket)
             if actor.is_user() and actor.get_user().registered.nick and actor.get_user().registered.user:
@@ -53,7 +53,7 @@ def handle(socket, address):
 
         try:
             router.send(resp)
-        except Exception, e:
+        except Exception as e:
             log.exception(e)
             Actor.by_socket(socket).disconnect()
 

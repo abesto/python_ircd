@@ -1,5 +1,5 @@
 from config import config
-import abnf
+from . import abnf
 
 
 class Error(Exception):
@@ -12,7 +12,7 @@ class Message(object):
             if ' ' in parameter:
                 raise Error('Space can only appear in the very last parameter')
         self.command = command
-        self.parameters = filter(lambda x: x is not None, list(parameters))
+        self.parameters = [x for x in parameters if x is not None]
         self.target = target
         self.prefix = str(kwargs['prefix']) if 'prefix' in kwargs else None
         self.add_nick = kwargs['add_nick'] if 'add_nick' in kwargs else False
