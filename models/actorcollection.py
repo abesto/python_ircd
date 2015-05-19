@@ -49,9 +49,10 @@ class ActorCollection(object):
                ')'
 
     def __eq__(self, other):
-        return other is ActorCollection and all(
-            [actor in other for actor in self.children]
-        )
+        if isinstance(other, ActorCollection):
+            return all([actor in other for actor in self.children])
+        else:
+            return NotImplemented
 
     def __contains__(self, item):
         return item in self.children
