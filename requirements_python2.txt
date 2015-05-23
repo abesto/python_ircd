@@ -1,0 +1,2 @@
+gevent==0.13.8
+dnspython==1.12.0
