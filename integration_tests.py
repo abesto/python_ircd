@@ -21,7 +21,7 @@ class Client(object):
 
     def write(self, msg):
         self.responses.append([])
-        print '<- [%s] %s' % (self.name, msg)
+        print('<- [%s] %s' % (self.name, msg))
         self.socket_file.write(msg + '\r\n')
         self.socket_file.flush()
 
@@ -32,8 +32,8 @@ class Client(object):
             try:
                 got = self.socket_file.readline().strip()
                 self.responses[-1].append(got)
-                print '-> [%s] %s' % (self.name, got)
-            except socket.error, e:
+                print('-> [%s] %s' % (self.name, got))
+            except socket.error as e:
                 if e.errno != errno.EAGAIN:
                     raise
                 time.sleep(self.timeout_step)

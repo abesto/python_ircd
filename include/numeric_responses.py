@@ -1,5 +1,5 @@
 from config import config
-from message import Message
+from .message import Message
 
 
 def _M(*args, **kwargs):

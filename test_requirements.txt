@@ -1,5 +1,2 @@
-dnspython
-pyparsing
-PyDispatcher
 nose
 mock

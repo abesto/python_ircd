@@ -5,7 +5,7 @@ from config import config
 from models.user import User
 from include.numeric_responses import *
 
-from _welcome import welcome
+from ._welcome import welcome
 from commands.base import Command
 
 

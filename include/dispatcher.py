@@ -31,7 +31,7 @@ class Dispatcher:
         if message.command not in self.handlers:
             try:
                 self.register(message.command)
-            except ImportError, e:
+            except ImportError as e:
                 log.warning('Unknown command %s. Message was: %s. Error: %s'
                 % (message.command, repr(message), e))
                 return

@@ -7,7 +7,7 @@ from include import abnf
 from include.numeric_responses import *
 from include.message import Message as M
 
-from _welcome import welcome
+from ._welcome import welcome
 
 
 class ReturnNone(object):

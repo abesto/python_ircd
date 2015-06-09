@@ -12,7 +12,7 @@ class AbnfTest(unittest.TestCase):
         config.set('parser', 'soft_eol', 'false')
 
     def _test(self, parser, cases):
-        for input, expected in cases.iteritems():
+        for input, expected in cases.items():
             actual = abnf.parse(input, parser)
             #print input, expected, actual
             self.assertEqual(expected, actual)
