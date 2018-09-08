@@ -1,25 +1,27 @@
-# -*- coding: utf-8 -*-
+"""
+`main`: Main entrypoint of python-ircd. Runs the server.
+"""
 
-import asyncio
 import logging
+import asyncio
 from asyncio import StreamReader, StreamWriter
 
-log = logging.getLogger()
-
 from config import config
-
 from include.connection import Connection
 from include.dispatcher import Dispatcher
-from include.message import Message
-from include.router import Router
-
+from include.message import Message, Error as MessageError
+from include.router import Router, Error as RouterError
 from models import Actor
 
-dispatcher = Dispatcher()
-router = Router()
+LOG = logging.getLogger()
+DISPATCHER = Dispatcher()
+ROUTER = Router()
 
 
 async def handle(reader: StreamReader, writer: StreamWriter):
+    """
+    Handle a single connection from a user or another server
+    """
     connection = Connection(reader, writer)
     while not Actor.by_connection(connection).disconnected:
         line = await connection.readline()
@@ -28,10 +30,10 @@ async def handle(reader: StreamReader, writer: StreamWriter):
             continue
         try:
             msg = Message.from_string(line)
-            log.debug("<= %s %s" % (repr(msg.target), repr(msg)))
-            resp = dispatcher.dispatch(connection, msg)
-        except Exception as e:
-            log.exception(e)
+            LOG.debug("<= %s %s", repr(msg.target), repr(msg))
+            resp = DISPATCHER.dispatch(connection, msg)
+        except MessageError as exc:
+            LOG.exception(exc)
             actor = Actor.by_connection(connection)
             if (
                 actor.is_user()
@@ -54,11 +56,11 @@ async def handle(reader: StreamReader, writer: StreamWriter):
                     Message(actor, "NOTICE", "The message sent by your client was:"),
                     Message(actor, "NOTICE", line.strip("\n")),
                     Message(actor, "NOTICE", "The error was:"),
-                    Message(actor, "NOTICE", str(e)),
+                    Message(actor, "NOTICE", str(exc)),
                     Message(actor, "NOTICE", "---"),
                     Message(actor, "NOTICE", "Closing connection."),
                 ]
-                quit_resp = dispatcher.dispatch(
+                quit_resp = DISPATCHER.dispatch(
                     connection, Message(None, "QUIT", "Protocol error")
                 )
                 if isinstance(quit_resp, list):
@@ -70,19 +72,26 @@ async def handle(reader: StreamReader, writer: StreamWriter):
             Actor.by_connection(connection).disconnect()
 
         try:
-            await router.send(resp)
-        except Exception as e:
-            log.exception(e)
+            await ROUTER.send(resp)
+        except RouterError as exc:
+            LOG.exception(exc)
             Actor.by_connection(connection).disconnect()
 
 
-host = config.get("server", "listen_host")
-port = config.getint("server", "listen_port")
-log.info("Starting server, listening on %s:%s" % (host, port))
+def main():
+    """Run the server."""
+    host = config.get("server", "listen_host")
+    port = config.getint("server", "listen_port")
+    LOG.info("Starting server, listening on %s:%s", host, port)
 
-loop = asyncio.get_event_loop()
-coroutine = asyncio.start_server(handle, host, port, loop=loop)
-server = loop.run_until_complete(coroutine)
-loop.run_forever()
+    loop = asyncio.get_event_loop()
+    coroutine = asyncio.start_server(handle, host, port, loop=loop)
+    loop.run_until_complete(coroutine)
+    loop.run_forever()
+    coroutine.close()
 
-log.info("Server stopped")
+    LOG.info("Server stopped")
+
+
+if __name__ == "__main__":
+    main()
