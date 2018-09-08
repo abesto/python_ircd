@@ -1,36 +1,58 @@
+"""
+Stores and manages the connections of users and other IRC servers
+"""
 import logging
 from abc import ABC
+from typing import Optional
 
 from include.connection import Connection
 from include.message import Message
-from models import Error
+from models import Error, User, Server
 from models.base import BaseModel
 
-log = logging.getLogger(__name__)
+LOG = logging.getLogger(__name__)
 
 
-class Actor(BaseModel, ABC):
+class Actor(BaseModel[Connection], ABC):
+    """The connection and related methods of a single user or server"""
     connection: Connection
 
     def __init__(self, connection: Connection, **kwargs) -> None:
         self.password = None
-        self.disconnected = False
-        self.connection_dropped = False
         self.connection = connection
 
-        self._server = None
-        self._user = None
+        self._server: Optional[Server] = None
+        self._user: Optional[User] = None
         if "user" in kwargs:
             self.user = kwargs["user"]
         if "server" in kwargs:
             self.server = kwargs["server"]
 
+    @property
+    def disconnected(self) -> bool:
+        """Whether this server has marked the connection as done"""
+        return self.connection.disconnected
+
+    @property
+    def connection_dropped(self) -> bool:
+        """Whether the connection has been unexpectedly lost"""
+        return self.connection.connection_dropped
+
     # Model stuff
-    def get_key(self):
+
+    def get_key(self) -> Connection:
         return self.connection
+
+    def _set_key(self, new_key: Connection):
+        self.connection = new_key
 
     @staticmethod
     def by_connection(connection: Connection):
+        """
+        Look up an `Actor` by a `Connection`, creating a new one
+        if there's no `Actor` for the `Connection` yet
+        :rtype: Actor
+        """
         try:
             return Actor.get(connection)
         except Error:
@@ -39,25 +61,32 @@ class Actor(BaseModel, ABC):
             return actor
 
     @staticmethod
-    def by_user(user):
+    def by_user(user: User):
+        """Look up an `Actor` by a `User` instance
+        :rtype: Actor
+        """
         return user.actor
 
     # Union of User and Server
-    def is_user(self):
+    def is_user(self) -> bool:
+        """Is this `Actor` managing the connection of a user?"""
         return self._user is not None
 
-    def is_server(self):
+    def is_server(self) -> bool:
+        """Is this `Actor` managing the connection of a server?"""
         return self._server is not None
 
-    def get_user(self):
-        if not self.is_user():
-            raise Error("not a user")
-        return self._user
+    def get_user(self) -> User:
+        """Get the `User` this `Actor` is managing the connection for"""
+        if self._user is not None:
+            return self._user
+        raise Error("not a user")
 
-    def get_server(self):
-        if not self.is_server():
-            raise Error("not a server")
-        return self._server
+    def get_server(self) -> Server:
+        """Get the `Server` this `Actor` is managing the connection for"""
+        if self._server is not None:
+            return self._server
+        raise Error("not a server")
 
     def __setattr__(self, key, value):
         if key == "server":
@@ -70,46 +99,52 @@ class Actor(BaseModel, ABC):
         elif key == "user":
             if self.is_server():
                 raise Error("user XOR server must be passed to Actor")
-            if hasattr(value, "actor"):
+            if value.actor:
                 raise Error("user already has an actor set")
             self._user = value
             self._user.actor = self
         else:
-            super(BaseModel, self).__setattr__(key, value)
+            super(Actor, self).__setattr__(key, value)
 
     def __str__(self):
         if self.is_user():
             return "Actor(" + str(self.get_user()) + ")"
-        elif self.is_server():
+        if self.is_server():
             return "Actor(" + str(self.get_server()) + ")"
-        else:
-            return "Unknown Actor"
+        return "Unknown Actor"
 
     def __repr__(self):
         return str(self)
 
     # Implement socket-like interface
-    def write(self, message: Message):
+    def write(self, message: Message) -> None:
+        """Serialize and write a `Message` onto the connection managed by this `Actor`"""
         if self.is_user() and message.add_nick:
             message.parameters.insert(0, self.get_user().nickname)
+        # pylint: disable=bare-except
         try:
             self.connection.write(message)
         except:
-            self.connection_dropped = True
-            log.exception("Connection dropped for {}, write() call failed".format(self))
+            self.connection.connection_dropped = True
+            LOG.exception("Connection dropped for %s, write() call failed", self)
+        # pylint: enable=bare-except
 
         if self.is_user() and message.add_nick:
             message.parameters = message.parameters[1:]
 
     async def flush(self):
+        """Flush the write buffer of the managed connection"""
+        # pylint: disable=bare-except
         try:
             return await self.connection.drain()
         except:
-            self.connection_dropped = True
-            log.exception("Connection dropped for {}, flush() call failed".format(self))
+            self.connection.connection_dropped = True
+            LOG.exception("Connection dropped for %s, flush() call failed", self)
+        # pylint: enable=bare-except
 
     def disconnect(self):
-        self.disconnected = True
+        """Mark this connection as over"""
+        self.connection.disconnected = True
 
     def __iter__(self):
         return iter([self])

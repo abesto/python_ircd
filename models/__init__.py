@@ -11,11 +11,11 @@ from typing import Union
 
 
 from .error import Error
+from .server import Server
+from .user import User
 from .actor import Actor
 from .actorcollection import ActorCollection
 from .channel import Channel
-from .server import Server
-from .user import User
 
 
 Target = Union[Actor, ActorCollection, Server]

@@ -1,11 +1,12 @@
-from typing import List, TypeVar, Type, Dict, Any
+from typing import List, TypeVar, Type, Dict, Any, Generic
 
 from models import Error
 
 T = TypeVar("T", bound="BaseModel")
+TKey = TypeVar("TKey")
 
 
-class BaseModel:
+class BaseModel(Generic[TKey]):
     objects: Dict[Any, Any] = {}
 
     @classmethod

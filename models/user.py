@@ -14,6 +14,7 @@ class User(BaseModel):
 
         self.mode = UserMode()
         self.away = False
+        self.actor = None
 
     def get_key(self):
         return self.nickname
