@@ -6,7 +6,7 @@ from typing import Optional, TypeVar, Type
 
 from include.connection import Connection
 from include.message import Message
-from models import Error, User, Server, db
+from models import Error, User, Server
 from models.base import BaseModel
 
 LOG = logging.getLogger(__name__)
