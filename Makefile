@@ -1,4 +1,4 @@
-.PHONY: setup unittest integration-test test listen mypy all black pylint
+.PHONY: setup unittest integration-test test listen mypy all black pylint update
 
 all: black test
 
@@ -24,3 +24,6 @@ test: mypy unittest integration-test
 
 listen:
 	pipenv run python ./application.py
+
+update:
+	pipenv update --pre  # The --pre is needed because of `black`

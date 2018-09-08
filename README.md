@@ -3,10 +3,11 @@ python-ircd [![Build Status](https://secure.travis-ci.org/abesto/python-ircd.png
 
 Aims to be a full-featured IRC server, started as a way to get some Python practice. The primary priority is complete support of the three RFCs describing the IRC protocol.
 
-# Running
+# Running, hacking
  1. Set up development environment with `make setup`
  1. Run the server with `make listen`
  1. Reformat code and run tests with `make`
+ 1. Update dependencies with `make update`
  
 See the [`Makefile`](./Makefile) for additional targets you can use for more granular control.
 
@@ -37,7 +38,7 @@ Code quality tools, set up by `make setup` via `pipenv`:
  * `pylint`: code quality
  * `black`: code formatting
 
-Used libraries:
+Used libraries (also set up by `make setup` via `pipenv`):
  * `dnspython3`: Reverse DNS lookups
  * `pyparsing`: Parsing incoming messages
  * `PyDispatcher`: Notifying parts of the system to runtime config changes
