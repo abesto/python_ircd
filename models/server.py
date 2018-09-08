@@ -2,4 +2,5 @@ from models.base import BaseModel
 
 
 class Server(BaseModel):
-    pass
+    def __init__(self):
+        self.actor = None

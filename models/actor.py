@@ -62,10 +62,19 @@ class Actor(BaseModel[Connection], ABC):
 
     @staticmethod
     def by_user(user: User):
-        """Look up an `Actor` by a `User` instance
+        """
+        Look up an `Actor` by a `User` instance
         :rtype: Actor
         """
         return user.actor
+
+    @staticmethod
+    def by_server(server: Server):
+        """
+        Look up an `Actor` by a `Server` instance
+        :rtype: Actor
+        """
+        return server.actor
 
     # Union of User and Server
     def is_user(self) -> bool:
