@@ -15,14 +15,14 @@ LOG = logging.getLogger(__name__)
 TActor = TypeVar("TActor", bound="Actor")
 
 
-class Actor(BaseModel[Connection]):
+class Actor(BaseModel[Connection, TActor]):
     """The connection and related methods of a single user or server"""
 
     connection: Connection
 
     def __init__(self, connection: Connection, **kwargs) -> None:
+        super().__init__(connection)
         self.password = None
-        self.connection = connection
 
         self._server: Optional[Server] = None
         self._user: Optional[User] = None
@@ -48,17 +48,6 @@ class Actor(BaseModel[Connection]):
 
     def _set_key(self, new_key: Connection):
         self.connection = new_key
-
-    @classmethod
-    def by_connection(cls: Type[TActor], connection: Connection) -> TActor:
-        """
-        Look up an `Actor` by a `Connection`, creating a new one
-        if there's no `Actor` for the `Connection` yet
-        """
-        try:
-            return db.get(cls, connection)
-        except Error:
-            return cls(connection).save()
 
     @classmethod
     def by_user(cls: Type[TActor], user: User) -> TActor:
@@ -151,7 +140,7 @@ class Actor(BaseModel[Connection]):
 
     def disconnect(self):
         """Mark this connection as over"""
-        self.connection.disconnected = True
+        self.connection.disconnect()
 
     def __iter__(self):
         return iter([self])

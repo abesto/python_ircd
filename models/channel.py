@@ -14,7 +14,7 @@ class ChannelMode(object):
         self.invite_only = False
 
 
-class Channel(BaseModel[str]):
+class Channel(BaseModel[str, TChannel]):
     def __init__(self, name):
         if not self.is_valid_name(name):
             raise Error("Erroneous channel name")
@@ -47,14 +47,6 @@ class Channel(BaseModel[str]):
         if user in self.users:
             self.users.remove(user)
             user.part(self)
-
-    @classmethod
-    def by_name(cls: Type[TChannel], name) -> TChannel:
-        """Get a channel by name, or create it if it doesn't yet exist"""
-        if db.exists(cls, name):
-            return db.get(cls, name)
-        else:
-            return cls(name).save()
 
     def _set_key(self, new_key):
         self.name = new_key

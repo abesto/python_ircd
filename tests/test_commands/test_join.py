@@ -85,10 +85,13 @@ class TestJoinCommand(unittest.TestCase):
     def setup_mocks(self):
         self.channel_patcher = patch("commands.join.Channel")
         self.actorcollection_patcher = patch("commands.join.ActorCollection")
+        self.db_patcher = patch("commands.join.db")
         self.mock_channel = self.channel_patcher.start()
         self.mock_actorcollection = self.actorcollection_patcher.start()
-        self.mock_channel.by_name.return_value = self.channel
+        self.mock_db = self.db_patcher.start()
+        self.mock_db.get_or_create.return_value = self.channel
 
     def teardown_mocks(self):
         self.channel_patcher.stop()
         self.actorcollection_patcher.stop()
+        self.db_patcher.stop()

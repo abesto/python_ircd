@@ -11,10 +11,13 @@ TKey = TypeVar("TKey")
 TValue = TypeVar("TValue", bound="BaseModel")
 
 
-class BaseModel(Generic[TKey], ABC):
+class BaseModel(Generic[TKey, TValue], ABC):
     """Base blass for all models stored in the “database” `BaseModel.objects`"""
 
     objects: Dict[Any, Dict] = {}
+
+    def __init__(self, key: TKey) -> None:
+        self._set_key(key)
 
     def save(self: TValue) -> TValue:
         """Save the instance into the database"""

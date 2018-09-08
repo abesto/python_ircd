@@ -9,9 +9,9 @@ from asyncio import StreamReader, StreamWriter
 from config import config
 from include.connection import Connection
 from include.dispatcher import Dispatcher
-from include.message import Message, Error as MessageError
+from include.message import Message
 from include.router import Router, Error as RouterError
-from models import Actor
+from models import db, Actor
 
 LOG = logging.getLogger()
 DISPATCHER = Dispatcher()
@@ -23,10 +23,10 @@ async def handle(reader: StreamReader, writer: StreamWriter):
     Handle a single connection from a user or another server
     """
     connection = Connection(reader, writer)
-    while not Actor.by_connection(connection).disconnected:
+    while not connection.disconnected:
         line = await connection.readline()
         if line == "":
-            Actor.by_connection(connection).disconnect()
+            connection.disconnect()
             continue
         try:
             msg = Message.from_string(line)
@@ -34,7 +34,7 @@ async def handle(reader: StreamReader, writer: StreamWriter):
             resp = DISPATCHER.dispatch(connection, msg)
         except Exception as exc:
             LOG.exception(exc)
-            actor = Actor.by_connection(connection)
+            actor = db.get_or_create(Actor, connection)
             if (
                 actor.is_user()
                 and actor.get_user().registered.nick
@@ -69,13 +69,13 @@ async def handle(reader: StreamReader, writer: StreamWriter):
                     resp.append(quit_resp)
             else:
                 resp = Message(actor, "ERROR")
-            Actor.by_connection(connection).disconnect()
+            connection.disconnect()
 
         try:
             await ROUTER.send(resp)
         except RouterError as exc:
             LOG.exception(exc)
-            Actor.by_connection(connection).disconnect()
+            connection.disconnect()
 
 
 def main():

@@ -4,7 +4,7 @@ import importlib
 import logging
 
 from config import config
-from models.actor import Actor
+from models import db, Actor
 
 log = logging.getLogger(__name__)
 
@@ -28,7 +28,7 @@ class Dispatcher:
         self.handlers[handler.command] = handler
 
     def dispatch(self, connection, message):
-        actor = Actor.by_connection(connection)
+        actor = db.get_or_create(Actor, connection)
         message.target = config.get("server", "servername")
         if message.command not in self.handlers:
             try:

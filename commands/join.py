@@ -14,8 +14,7 @@ from include.numeric_responses import (
     RPL_ENDOFNAMES,
     RPL_TOPIC,
 )
-from models.actorcollection import ActorCollection
-from models.channel import Channel
+from models import db, ActorCollection, Channel
 
 __all__ = ["JoinCommand"]
 
@@ -110,7 +109,7 @@ class JoinCommand(Command):
 
     def join(self, channel_name: str) -> List[Message]:
         """Verify channel key and join the channel"""
-        channel = Channel.by_name(channel_name)
+        channel = db.get_or_create(Channel, channel_name)
         if self.got_valid_key_for(channel):
             channel.join(self.user)
             return self.join_message(channel)
