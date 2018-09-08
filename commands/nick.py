@@ -1,4 +1,7 @@
+from typing import List
+
 from commands.base import Command
+from models import Server
 from models.user import User
 from models.server import Server
 from models.actorcollection import ActorCollection

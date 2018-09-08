@@ -1,34 +1,37 @@
 # -*- coding: utf-8 -*-
 
-from config import config
-
 import logging
+import asyncio
+from asyncio import StreamReader, StreamWriter
+
 log = logging.getLogger()
 
-import gevent
-import gevent.server
-import gevent.monkey
-gevent.monkey.patch_all()
+from config import config
 
+from include.connection import Connection
 from include.dispatcher import Dispatcher
 from include.message import Message
 from include.router import Router
 
 from models import Actor
 dispatcher = Dispatcher()
-router = Router(gevent.socket.SHUT_RDWR)
+router = Router()
 
-def handle(socket, address):
-    fileobj = socket.makefile('rw')
-    while not Actor.by_socket(socket).disconnected:
-        line = fileobj.readline()
+
+async def handle(reader: StreamReader, writer: StreamWriter):
+    connection = Connection(reader, writer)
+    while not Actor.by_connection(connection).disconnected:
+        line = await connection.readline()
+        if line == '':
+            Actor.by_connection(connection).disconnect()
+            continue
         try:
             msg = Message.from_string(line)
             log.debug('<= %s %s' % (repr(msg.target), repr(msg)))
-            resp = dispatcher.dispatch(socket, msg)
+            resp = dispatcher.dispatch(connection, msg)
         except Exception as e:
             log.exception(e)
-            actor = Actor.by_socket(socket)
+            actor = Actor.by_connection(connection)
             if actor.is_user() and actor.get_user().registered.nick and actor.get_user().registered.user:
                 resp = [
                     Message(actor, 'NOTICE', 'The message your client has just sent could not be parsed or processed.'),
@@ -42,24 +45,28 @@ def handle(socket, address):
                     Message(actor, 'NOTICE', '---'),
                     Message(actor, 'NOTICE', 'Closing connection.')
                 ]
-                quit_resp = dispatcher.dispatch(socket, Message(None, 'QUIT', 'Protocol error'))
+                quit_resp = dispatcher.dispatch(connection, Message(None, 'QUIT', 'Protocol error'))
                 if isinstance(quit_resp, list):
                     resp += quit_resp
                 else:
                     resp.append(quit_resp)
             else:
                 resp = Message(actor, 'ERROR')
-            Actor.by_socket(socket).disconnect()
+            Actor.by_connection(connection).disconnect()
 
         try:
-            router.send(resp)
+            await router.send(resp)
         except Exception as e:
             log.exception(e)
-            Actor.by_socket(socket).disconnect()
+            Actor.by_connection(connection).disconnect()
 
 host = config.get('server', 'listen_host')
 port = config.getint('server', 'listen_port')
 log.info('Starting server, listening on %s:%s' % (host, port))
-server = gevent.server.StreamServer((host, port), handle)
-server.serve_forever()
+
+loop = asyncio.get_event_loop()
+coroutine = asyncio.start_server(handle, host, port, loop=loop)
+server = loop.run_until_complete(coroutine)
+loop.run_forever()
+
 log.info('Server stopped')

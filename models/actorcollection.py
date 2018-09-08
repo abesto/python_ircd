@@ -1,3 +1,5 @@
+import asyncio
+
 from models.actor import Actor
 from models.server import Server
 from models.user import User
@@ -29,8 +31,7 @@ class ActorCollection(object):
             child.write(message)
 
     def flush(self):
-        for child in self.children:
-            child.flush()
+        return asyncio.wait([child.flush() for child in self.children])
 
     def disconnect(self):
         for child in self.children:

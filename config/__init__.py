@@ -1,7 +1,6 @@
 import os
 from six.moves.configparser import SafeConfigParser
 from datetime import datetime
-import pydispatch
 from pydispatch import dispatcher
 import logging.config
 

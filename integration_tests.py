@@ -15,8 +15,8 @@ class Client(object):
         self.name = name
         self.socket = socket.socket()
         self.socket.connect((config.get('server', 'listen_host'), config.getint('server', 'listen_port')))
-        self.socket.setblocking(0)
-        self.socket_file = self.socket.makefile()
+        self.socket.setblocking(False)
+        self.socket_file = self.socket.makefile('rw', encoding='UTF-8', newline='\r\n')
         self.responses = []
 
     def write(self, msg):
@@ -31,8 +31,12 @@ class Client(object):
         while got != line and timeout > 0:
             try:
                 got = self.socket_file.readline().strip()
-                self.responses[-1].append(got)
-                print('-> [%s] %s' % (self.name, got))
+                if got != '':
+                    self.responses[-1].append(got)
+                    print('-> [%s] %s' % (self.name, got))
+                else:
+                    time.sleep(self.timeout_step)
+                    timeout -= self.timeout_step
             except socket.error as e:
                 if e.errno != errno.EAGAIN:
                     raise
@@ -61,6 +65,11 @@ class ServerClientTests(unittest.TestCase):
         self.c2 = Client('bob-%s' % self.n)
         self.c3 = Client('clair-%s' % self.n)
         Client.test_case = self
+
+    def tearDown(self):
+        self.c1.socket_file.close()
+        self.c2.socket_file.close()
+        self.c3.socket_file.close()
 
     def test_login_nick_first(self, c=None):
         if c is None: c = self.c1

@@ -1,4 +1,4 @@
-import unittest
+import asynctest
 from mock import Mock
 
 from include.router import Router
@@ -9,22 +9,20 @@ class ActorDisconnectOnWrite(Actor):
     def write(self, message):
         self.disconnect()
 
-class IntegrationTest(unittest.TestCase):
-    def test_actorcollection_disconnect(self):
-        shutdown_signal = Mock()
-        router = Router(shutdown_signal)
+
+class IntegrationTest(asynctest.TestCase):
+    async def test_actorcollection_disconnect(self):
+        router = Router()
 
         a0 = ActorDisconnectOnWrite(Mock())
-        router.send(Message(a0, 'FOO'))
-        a0.socket.shutdown.assert_called_with(shutdown_signal)
-        a0.socket.close.assert_called_once()
+        await router.send(Message(a0, 'FOO'))
+        a0.connection.close.assert_called_with()
 
         col = ActorCollection([
             ActorDisconnectOnWrite(Mock()),
             ActorDisconnectOnWrite(Mock())
         ])
 
-        router.send(Message(col, 'FOO'))
+        await router.send(Message(col, 'FOO'))
         for actor in col:
-            actor.socket.shutdown.assert_called_with(shutdown_signal)
-            actor.socket.close.assert_called_once()
+            actor.connection.close.assert_called_with()

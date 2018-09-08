@@ -23,10 +23,11 @@ class Message(object):
             raise Error('Message must not be longer than 512 characters')
         raw = abnf.parse(string, abnf.message)
         if not raw:
-            raise Error('Failed to parse message: ' + string)
+            raise Error('Failed to parse message: "{}"'.format(string))
         if config.get('parser', 'lowercase_commands'):
             raw[1] = raw[1].upper()
-        msg = Message(None, prefix=raw.pop(0), *raw)
+        prefix = raw.pop(0)
+        msg = Message(None, prefix=prefix, *raw)
         return msg
 
     def __str__(self):

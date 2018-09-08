@@ -1,17 +1,25 @@
+from abc import ABC
+
+import logging
+
+from include.connection import Connection
+from include.message import Message
 from models import Error
 from models.base import BaseModel
 
 
-class Actor(BaseModel):
-    socket_to_actor = {}
+log = logging.getLogger(__name__)
 
-    def __init__(self, socket, **kwargs):
+
+class Actor(BaseModel, ABC):
+    connection: Connection
+
+    def __init__(self, connection: Connection, **kwargs) -> None:
         self.password = None
         self.disconnected = False
         self.connection_dropped = False
 
-        self.socket = socket
-        self.socket_file = socket.makefile('rw')
+        self.connection = connection
 
         self._server = None
         self._user = None
@@ -22,14 +30,14 @@ class Actor(BaseModel):
 
     # Model stuff
     def get_key(self):
-        return self.socket
+        return self.connection
 
     @staticmethod
-    def by_socket(socket):
+    def by_connection(connection: Connection):
         try:
-            return Actor.get(socket)
+            return Actor.get(connection)
         except Error:
-            actor = Actor(socket)
+            actor = Actor(connection)
             actor.save()
             return actor
 
@@ -84,21 +92,24 @@ class Actor(BaseModel):
         return str(self)
 
     # Implement socket-like interface
-    def write(self, message):
+    def write(self, message: Message):
         if self.is_user() and message.add_nick:
             message.parameters.insert(0, self.get_user().nickname)
         try:
-            self.socket_file.write(message)
+            self.connection.write(message)
         except:
             self.connection_dropped = True
+            log.exception('Connection dropped for {}, write() call failed'.format(self))
+
         if self.is_user() and message.add_nick:
             message.parameters = message.parameters[1:]
 
-    def flush(self):
+    async def flush(self):
         try:
-            self.socket_file.flush()
+            return await self.connection.drain()
         except:
             self.connection_dropped = True
+            log.exception('Connection dropped for {}, flush() call failed'.format(self))
 
     def disconnect(self):
         self.disconnected = True

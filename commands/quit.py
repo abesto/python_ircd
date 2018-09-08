@@ -7,6 +7,7 @@ from models.actorcollection import ActorCollection
 class QuitCommand(Command):
     required_parameter_count = 0
     command = 'QUIT'
+    user_registration_command = True
 
     def from_user(self, message='leaving', *_):
         ret = []

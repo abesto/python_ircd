@@ -2,8 +2,8 @@ from include.numeric_responses import *
 
 
 class Command(object):
-    required_parameter_count = None
-    command = None
+    required_parameter_count: int = -1
+    command = ''
     user_registration_command = False
     server_registration_command = False
 

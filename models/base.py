@@ -1,8 +1,13 @@
+from typing import List, TypeVar, Type, Dict, Any
+
 from models import Error
 
 
-class BaseModel(object):
-    objects = {}
+T = TypeVar('T', bound='BaseModel')
+
+
+class BaseModel():
+    objects: Dict[Any, Any] = {}
 
     @classmethod
     def get(cls, key):
@@ -11,10 +16,10 @@ class BaseModel(object):
         return BaseModel.objects[cls][key]
 
     @classmethod
-    def all(cls):
-        if not cls in BaseModel.objects:
+    def all(cls: Type[T]) -> List[T]:
+        if cls not in BaseModel.objects:
             BaseModel.objects[cls] = {}
-        return BaseModel.objects[cls].values()
+        return list(BaseModel.objects[cls].values())
 
     @classmethod
     def exists(cls, key):
@@ -33,7 +38,8 @@ class BaseModel(object):
         BaseModel.objects[self.__class__][self.get_key()] = self
 
     def delete(self):
-        del BaseModel.objects[self.__class__][self.get_key()]
+        if self.__class__ in BaseModel.objects:
+            del BaseModel.objects[self.__class__][self.get_key()]
 
     def get_key(self):
         raise NotImplementedError

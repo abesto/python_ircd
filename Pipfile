@@ -1,0 +1,19 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+pyparsing = "*"
+pydispatcher = "*"
+"dnspython3" = "*"
+
+[dev-packages]
+nose = "*"
+mock = "*"
+asynctest = "*"
+mypy = "*"
+pylint = "*"
+
+[requires]
+python_version = "3.7"

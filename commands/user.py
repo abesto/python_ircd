@@ -22,7 +22,7 @@ class UserCommand(Command):
             return ERR_ALREADYREGISTRED(self.actor)
 
         self.user.username = username
-        self.user.hostname = self.actor.socket.getpeername()[0]
+        self.user.hostname = self.actor.connection.get_peername()[0]
         try:
             addr = reversename.from_address(self.user.hostname)
             self.user.hostname = str(resolver.query(addr, "PTR")[0])

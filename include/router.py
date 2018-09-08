@@ -14,10 +14,7 @@ class Error(Exception):
 
 
 class Router(object):
-    def __init__(self, shutdown_signal):
-        self.shutdown_signal = shutdown_signal
-
-    def send(self, messages):
+    async def send(self, messages):
         if messages is None:
             return
 
@@ -35,19 +32,15 @@ class Router(object):
             log.debug('=> %s %s' % (repr(message.target), repr(message)))
 
         for target in actors:
-            target.flush()
+            await target.flush()
 
         for actor in itertools.chain.from_iterable(actors):
             if actor.connection_dropped:
                 if actor.is_user():
                     cmd = QuitCommand()
                     message = M(None, 'QUIT', 'Connection lost')
+                    await self.send(cmd.handle(actor, message))
                 # TODO: is_server
-                self.send(cmd.handle(actor, message))
 
             if actor.disconnected:
-                try:
-                    actor.socket.shutdown(self.shutdown_signal)
-                except:
-                    pass
-                actor.socket.close()
+                actor.connection.close()

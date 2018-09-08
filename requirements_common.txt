@@ -1,3 +1,0 @@
-pyparsing
-PyDispatcher==2.0.3
-six

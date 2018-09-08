@@ -25,8 +25,8 @@ class Dispatcher:
             % (command, handler.command))
         self.handlers[handler.command] = handler
 
-    def dispatch(self, socket, message):
-        actor = Actor.by_socket(socket)
+    def dispatch(self, connection, message):
+        actor = Actor.by_connection(connection)
         message.target = config.get('server', 'servername')
         if message.command not in self.handlers:
             try:
