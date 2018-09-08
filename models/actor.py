@@ -23,10 +23,10 @@ class Actor(BaseModel, ABC):
 
         self._server = None
         self._user = None
-        if 'user' in kwargs:
-            self.user = kwargs['user']
-        if 'server' in kwargs:
-            self.server = kwargs['server']
+        if "user" in kwargs:
+            self.user = kwargs["user"]
+        if "server" in kwargs:
+            self.server = kwargs["server"]
 
     # Model stuff
     def get_key(self):
@@ -54,27 +54,27 @@ class Actor(BaseModel, ABC):
 
     def get_user(self):
         if not self.is_user():
-            raise Error('not a user')
+            raise Error("not a user")
         return self._user
 
     def get_server(self):
         if not self.is_server():
-            raise Error('not a server')
+            raise Error("not a server")
         return self._server
 
     def __setattr__(self, key, value):
-        if key == 'server':
+        if key == "server":
             if self.is_user():
-                raise Error('user XOR server must be passed to Actor')
+                raise Error("user XOR server must be passed to Actor")
             if value.actor:
-                raise Error('server already has an actor set')
+                raise Error("server already has an actor set")
             self._server = value
             self._server.actor = self
-        elif key == 'user':
+        elif key == "user":
             if self.is_server():
-                raise Error('user XOR server must be passed to Actor')
-            if hasattr(value, 'actor'):
-                raise Error('user already has an actor set')
+                raise Error("user XOR server must be passed to Actor")
+            if hasattr(value, "actor"):
+                raise Error("user already has an actor set")
             self._user = value
             self._user.actor = self
         else:
@@ -82,11 +82,11 @@ class Actor(BaseModel, ABC):
 
     def __str__(self):
         if self.is_user():
-            return 'Actor(' + str(self.get_user()) + ')'
+            return "Actor(" + str(self.get_user()) + ")"
         elif self.is_server():
-            return 'Actor(' + str(self.get_server()) + ')'
+            return "Actor(" + str(self.get_server()) + ")"
         else:
-            return 'Unknown Actor'
+            return "Unknown Actor"
 
     def __repr__(self):
         return str(self)
@@ -99,7 +99,7 @@ class Actor(BaseModel, ABC):
             self.connection.write(message)
         except:
             self.connection_dropped = True
-            log.exception('Connection dropped for {}, write() call failed'.format(self))
+            log.exception("Connection dropped for {}, write() call failed".format(self))
 
         if self.is_user() and message.add_nick:
             message.parameters = message.parameters[1:]
@@ -109,7 +109,7 @@ class Actor(BaseModel, ABC):
             return await self.connection.drain()
         except:
             self.connection_dropped = True
-            log.exception('Connection dropped for {}, flush() call failed'.format(self))
+            log.exception("Connection dropped for {}, flush() call failed".format(self))
 
     def disconnect(self):
         self.disconnected = True

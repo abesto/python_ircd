@@ -28,7 +28,7 @@ class Parameters(object):
 
 class NickCommand(Command):
     required_parameter_count = 0
-    command = 'NICK'
+    command = "NICK"
     user_registration_command = True
 
     def __init__(self):
@@ -52,8 +52,10 @@ class NickCommand(Command):
 
     def build_checks(self):
         self.checks = [
-            self.check_missing_nick, self.check_invalid_nick,
-            self.check_network_nickcollision, self.check_local_nickcollision
+            self.check_missing_nick,
+            self.check_invalid_nick,
+            self.check_network_nickcollision,
+            self.check_local_nickcollision,
         ]
 
     def run_checks(self):
@@ -69,7 +71,7 @@ class NickCommand(Command):
     def check_invalid_nick(self):
         parsed_nick = abnf.parse(self.params.nick, abnf.nickname)
         if len(self.params.nick) > 9 or parsed_nick != self.params.nick:
-            nick = self.params.nick.replace(' ', '_')
+            nick = self.params.nick.replace(" ", "_")
             return ERR_ERRONEUSNICKNAME(nick, self.actor)
 
     def check_network_nickcollision(self):
@@ -81,23 +83,19 @@ class NickCommand(Command):
         if not User.exists(self.params.nick):
             return
         # client sending its own nickname
-        if self.user.registered.nick and\
-           self.user.registered.user and\
-           self.user is User.get(self.params.nick):
+        if (
+            self.user.registered.nick
+            and self.user.registered.user
+            and self.user is User.get(self.params.nick)
+        ):
             return ReturnNone
         # real collision
         return ERR_NICKNAMEINUSE(self.params.nick, self.actor)
 
     def build_handlers(self):
         self.handlers = {
-            False: {
-                False: self.preuser_first,
-                True: self.preuser_rename
-            },
-            True: {
-                False: self.register,
-                True: self.rename
-            }
+            False: {False: self.preuser_first, True: self.preuser_rename},
+            True: {False: self.register, True: self.rename},
         }
 
     def run_handler(self):
@@ -110,14 +108,14 @@ class NickCommand(Command):
 
     def preuser_rename(self):
         self.user.rename(self.params.nick)
-        return M(self.actor, 'NICK', self.params.nick)
+        return M(self.actor, "NICK", self.params.nick)
 
     def register(self):
         self.user.nickname = self.params.nick
         self.user.registered.nick = True
         self.user.save()
-        return welcome(self.actor) + [M(self.actor, 'NICK', self.params.nick)]
-        #TODO: send NICK and USER to other servers
+        return welcome(self.actor) + [M(self.actor, "NICK", self.params.nick)]
+        # TODO: send NICK and USER to other servers
 
     def rename(self):
         from_full = str(self.user)
@@ -125,6 +123,4 @@ class NickCommand(Command):
         targets = [self.actor] + Server.all()
         for channel in self.user.channels:
             targets += channel.users
-        return M(ActorCollection(targets),
-                 'NICK', self.params.nick,
-                 prefix=from_full)
+        return M(ActorCollection(targets), "NICK", self.params.nick, prefix=from_full)

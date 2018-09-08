@@ -13,13 +13,13 @@ class ChannelMode(object):
 class Channel(BaseModel):
     def __init__(self, name):
         if not self.is_valid_name(name):
-            raise Error('Erroneous channel name')
+            raise Error("Erroneous channel name")
 
         raw = abnf.parse(name, abnf.channel)
         self.mode = ChannelMode
         self.prefix = raw[0]
-        self.id = raw[1] if self.prefix == '!' else None
-        self.name = raw[2] if self.prefix == '!' else raw[1]
+        self.id = raw[1] if self.prefix == "!" else None
+        self.name = raw[2] if self.prefix == "!" else raw[1]
 
         self.users = []
         self.topic = None
@@ -43,4 +43,3 @@ class Channel(BaseModel):
         if user in self.users:
             self.users.remove(user)
             user.part(self)
-

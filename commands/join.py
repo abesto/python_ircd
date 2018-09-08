@@ -16,20 +16,22 @@ class Parameters:
         self.build_key_dict()
 
     def parse_channels(self, channels):
-        self.part_all = (channels == '0')
+        self.part_all = channels == "0"
         if self.part_all:
             self.channel_names = []
         else:
-            self.channel_names = channels.split(',')
+            self.channel_names = channels.split(",")
 
     def parse_keys(self, keys):
-        self.keys = keys.split(',')
+        self.keys = keys.split(",")
 
     def build_key_dict(self):
-        self.key_dict = dict(zip(
-            self.channel_names,
-            self.keys + [None] * (len(self.channel_names) - len(self.keys))
-        ))
+        self.key_dict = dict(
+            zip(
+                self.channel_names,
+                self.keys + [None] * (len(self.channel_names) - len(self.keys)),
+            )
+        )
 
     def get_key_for_channel_name(self, name):
         if name in self.key_dict:
@@ -39,16 +41,18 @@ class Parameters:
 
 class JoinCommand(Command):
     required_parameter_count = 1
-    command = 'JOIN'
+    command = "JOIN"
 
-    def from_user(self, channel_names_str, keys_str='', *_):
+    def from_user(self, channel_names_str, keys_str="", *_):
         self.parameters = Parameters(channel_names_str, keys_str)
         if self.parameters.part_all:
             return self.part_all_channels()
-        return flatten([
-            self.join_or_error(channel_name)
-            for channel_name in self.parameters.channel_names
-        ])
+        return flatten(
+            [
+                self.join_or_error(channel_name)
+                for channel_name in self.parameters.channel_names
+            ]
+        )
 
     def join_or_error(self, channel_name):
         if Channel.is_valid_name(channel_name):
@@ -80,11 +84,9 @@ class JoinCommand(Command):
 
     def join_message(self, channel):
         ret = [
-            M(ActorCollection(channel.users),
-              'JOIN', str(channel),
-              prefix=self.user),
+            M(ActorCollection(channel.users), "JOIN", str(channel), prefix=self.user),
             RPL_NAMEREPLY(self.actor, channel),
-            RPL_ENDOFNAMES(self.actor)
+            RPL_ENDOFNAMES(self.actor),
         ]
         if channel.topic is not None:
             ret.append(RPL_TOPIC(self.actor, channel))

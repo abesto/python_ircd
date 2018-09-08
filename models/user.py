@@ -40,7 +40,7 @@ class User(BaseModel):
         self.nickname = new_key
 
     def __str__(self):
-        return '%s!%s@%s' % (self.nickname, self.username, self.hostname)
+        return "%s!%s@%s" % (self.nickname, self.username, self.hostname)
 
     def __repr__(self):
         return str(self)

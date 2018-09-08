@@ -1,9 +1,12 @@
-.PHONY: setup unittest integration-test test listen mypy
+.PHONY: setup unittest integration-test test listen mypy all black
 
-all: test
+all: black test
 
 setup:
-	pipenv --three --dev
+	pipenv --dev
+
+black:
+	pipenv run black .
 
 unittest:
 	pipenv run nosetests tests

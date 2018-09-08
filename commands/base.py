@@ -3,7 +3,7 @@ from include.numeric_responses import *
 
 class Command(object):
     required_parameter_count: int = -1
-    command = ''
+    command = ""
     user_registration_command = False
     server_registration_command = False
 
@@ -32,10 +32,10 @@ class Command(object):
 
         if self.required_parameter_count is None:
             raise NotImplementedError(
-                'required_parameter_count must be set on Handler subclass')
+                "required_parameter_count must be set on Handler subclass"
+            )
         if self.command is None:
-            raise NotImplementedError(
-                'command must be set on Handler subclass')
+            raise NotImplementedError("command must be set on Handler subclass")
         if self.command != message.command:
             raise "Wrong handler for " + repr(message)
 
@@ -62,4 +62,4 @@ class Command(object):
             message.prefix = str(self.user)
             return self.from_user(*message.parameters)
         else:
-            raise Exception('Don\'t know what to do :(')
+            raise Exception("Don't know what to do :(")

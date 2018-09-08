@@ -5,17 +5,18 @@ from commands.user import UserCommand
 from commands._welcome import welcome
 from include.numeric_responses import *
 
+
 class TestNickCommand(unittest.TestCase):
     def setUp(self):
-        self.user_patcher = patch('commands.user.User')
+        self.user_patcher = patch("commands.user.User")
         self.mock_user = self.user_patcher.start()
 
         self.users = [MagicMock(), MagicMock()]
-        self.users[0].__str__.return_value = self.users[0].nickname = 'nick0'
-        self.users[1].__str__.return_value = self.users[1].nickname = 'nick1'
+        self.users[0].__str__.return_value = self.users[0].nickname = "nick0"
+        self.users[1].__str__.return_value = self.users[1].nickname = "nick1"
 
         self.channel = MagicMock()
-        self.channel.__str__.return_value = 'testchannel'
+        self.channel.__str__.return_value = "testchannel"
 
         self.cmd = UserCommand()
         self.cmd.actor = MagicMock()
@@ -31,8 +32,7 @@ class TestNickCommand(unittest.TestCase):
         user.registered.user = False
         self.mock_user.return_value = user
         self.assertEqual(
-            None,
-            self.cmd.from_user('username', 'hostname', 'servername', 'realname')
+            None, self.cmd.from_user("username", "hostname", "servername", "realname")
         )
         self.assertEqual(self.cmd.actor.user, user)
         self.assertEqual(self.cmd.user, user)
@@ -40,7 +40,7 @@ class TestNickCommand(unittest.TestCase):
 
     def test_after_nick(self):
         "NICK is received"
-        server_patcher = patch('commands.nick.Server')
+        server_patcher = patch("commands.nick.Server")
         mock_server = server_patcher.start()
         mock_server.all.return_value = [Mock]
 
@@ -50,7 +50,7 @@ class TestNickCommand(unittest.TestCase):
         user.registered.user = False
         self.assertEqual(
             welcome(self.cmd.actor),
-            self.cmd.from_user('username', 'hostname', 'servername', 'realname')
+            self.cmd.from_user("username", "hostname", "servername", "realname"),
         )
         self.assertTrue(self.cmd.user.registered.user)
 
@@ -61,6 +61,5 @@ class TestNickCommand(unittest.TestCase):
         user.registered.user = True
         self.assertEqual(
             ERR_ALREADYREGISTRED(self.cmd.actor),
-            self.cmd.from_user('username', 'hostname', 'servername', 'realname')
+            self.cmd.from_user("username", "hostname", "servername", "realname"),
         )
-

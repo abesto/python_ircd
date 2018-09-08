@@ -26,10 +26,10 @@ class Router(object):
         for message in messages:
             # Default prefix is the servername
             if message.prefix is None:
-                message.prefix = config.get('server', 'servername')
+                message.prefix = config.get("server", "servername")
             actors.add(message.target)
             message.target.write(message)
-            log.debug('=> %s %s' % (repr(message.target), repr(message)))
+            log.debug("=> %s %s" % (repr(message.target), repr(message)))
 
         for target in actors:
             await target.flush()
@@ -38,7 +38,7 @@ class Router(object):
             if actor.connection_dropped:
                 if actor.is_user():
                     cmd = QuitCommand()
-                    message = M(None, 'QUIT', 'Connection lost')
+                    message = M(None, "QUIT", "Connection lost")
                     await self.send(cmd.handle(actor, message))
                 # TODO: is_server
 

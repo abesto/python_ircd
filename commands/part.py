@@ -9,10 +9,10 @@ from commands.base import Command
 
 class PartCommand(Command):
     required_parameter_count = 1
-    command = 'PART'
+    command = "PART"
 
-    def from_user(self, channels, msg='leaving', *_):
-        channels = channels.split(',')
+    def from_user(self, channels, msg="leaving", *_):
+        channels = channels.split(",")
 
         ret = []
 
@@ -24,10 +24,15 @@ class PartCommand(Command):
             if self.user not in channel.users:
                 ret.append(ERR_NOTONCHANNEL(channel_name, self.actor))
                 continue
-            ret.append(M(ActorCollection(channel.users),
-                         'PART', str(channel), msg,
-                         prefix=str(self.user)
-            ))
+            ret.append(
+                M(
+                    ActorCollection(channel.users),
+                    "PART",
+                    str(channel),
+                    msg,
+                    prefix=str(self.user),
+                )
+            )
             self.user.part(channel)
 
         return ret

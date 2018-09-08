@@ -11,7 +11,7 @@ from commands.base import Command
 
 class PrivmsgCommand(Command):
     required_parameter_count = 0
-    command = 'PRIVMSG'
+    command = "PRIVMSG"
 
     def from_user(self, receivers=None, text=None, *_):
         if receivers is None:
@@ -20,20 +20,32 @@ class PrivmsgCommand(Command):
             return ERR_NOTEXTTOSEND(self.actor)
         resp = []
         # TODO: check for ERR_TOOMANYTARGETS
-        for receiver in receivers.split(','):
+        for receiver in receivers.split(","):
             if Channel.exists(receiver):
-                users = [user
-                         for user in Channel.get(receiver).users
-                         if user is not self.user]
-                resp.append(M(
-                    ActorCollection(users),
-                    self.command, str(receiver), text,
-                    prefix=str(self.user)))
+                users = [
+                    user
+                    for user in Channel.get(receiver).users
+                    if user is not self.user
+                ]
+                resp.append(
+                    M(
+                        ActorCollection(users),
+                        self.command,
+                        str(receiver),
+                        text,
+                        prefix=str(self.user),
+                    )
+                )
             elif User.exists(receiver):
-                resp.append(M(
-                    Actor.by_user(User.get(receiver)),
-                    self.command, str(receiver), text,
-                    prefix=str(self.user)))
+                resp.append(
+                    M(
+                        Actor.by_user(User.get(receiver)),
+                        self.command,
+                        str(receiver),
+                        text,
+                        prefix=str(self.user),
+                    )
+                )
             # TODO: Implement wildcards
             # TODO: check for ERR_WILDTOPLEVEL, RPL_AWAY, ERR_NOTOPLEVEL
             else:

@@ -23,7 +23,7 @@ class ActorCollection(object):
             elif isinstance(child, ActorCollection):
                 self.children += child.children
             else:
-                raise Error('Don\'t know what to do with %s' + child.__class__)
+                raise Error("Don't know what to do with %s" + child.__class__)
         self.children = frozenset(self.children)
 
     def write(self, message):
@@ -41,14 +41,18 @@ class ActorCollection(object):
         raise NotImplementedError
 
     def __str__(self):
-        return 'ActorCollection(' +\
-               ', '.join([str(child) for child in self.children]) +\
-               ')'
+        return (
+            "ActorCollection("
+            + ", ".join([str(child) for child in self.children])
+            + ")"
+        )
 
     def __repr__(self):
-        return 'ActorCollection(' +\
-               ', '.join([repr(child) for child in self.children]) +\
-               ')'
+        return (
+            "ActorCollection("
+            + ", ".join([repr(child) for child in self.children])
+            + ")"
+        )
 
     def __eq__(self, other):
         if isinstance(other, ActorCollection):

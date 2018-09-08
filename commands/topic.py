@@ -9,7 +9,7 @@ from commands.base import Command
 
 class TopicCommand(Command):
     required_parameter_count = 1
-    command = 'TOPIC'
+    command = "TOPIC"
 
     def from_user(self, channel_name, topic=None, *_):
         # TODO: ERR_NOCHANMODES, ERR_CHANOPRIVSNEEDED
@@ -23,7 +23,7 @@ class TopicCommand(Command):
                 return RPL_NOTOPIC(self.actor, channel)
             else:
                 return RPL_TOPIC(self.actor, channel)
-        elif topic == '':
+        elif topic == "":
             channel.topic = None
         else:
             channel.topic = topic

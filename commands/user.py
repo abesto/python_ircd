@@ -11,7 +11,7 @@ from commands.base import Command
 
 class UserCommand(Command):
     required_parameter_count = 4
-    command = 'USER'
+    command = "USER"
     user_registration_command = True
 
     def from_user(self, username, hostname, servername, realname, *_):
@@ -28,7 +28,7 @@ class UserCommand(Command):
             self.user.hostname = str(resolver.query(addr, "PTR")[0])
         except:
             pass
-        self.user.servername = config.get('server', 'servername')
+        self.user.servername = config.get("server", "servername")
         self.user.realname = realname
 
         self.user.registered.user = True

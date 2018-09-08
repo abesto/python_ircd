@@ -18,21 +18,25 @@ class Dispatcher:
         self.handlers = {}
 
     def register(self, command):
-        module = importlib.import_module('commands.' + command.lower())
-        handler = module.__dict__[command.capitalize() + 'Command']()
+        module = importlib.import_module("commands." + command.lower())
+        handler = module.__dict__[command.capitalize() + "Command"]()
         if command != handler.command:
-            raise Error('Command mismatch. Incoming: %s. Handler: %s.'
-            % (command, handler.command))
+            raise Error(
+                "Command mismatch. Incoming: %s. Handler: %s."
+                % (command, handler.command)
+            )
         self.handlers[handler.command] = handler
 
     def dispatch(self, connection, message):
         actor = Actor.by_connection(connection)
-        message.target = config.get('server', 'servername')
+        message.target = config.get("server", "servername")
         if message.command not in self.handlers:
             try:
                 self.register(message.command)
             except ImportError as e:
-                log.warning('Unknown command %s. Message was: %s. Error: %s'
-                % (message.command, repr(message), e))
+                log.warning(
+                    "Unknown command %s. Message was: %s. Error: %s"
+                    % (message.command, repr(message), e)
+                )
                 return
         return self.handlers[message.command].handle(actor, message)

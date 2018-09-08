@@ -9,7 +9,7 @@ from commands.base import Command
 
 class WhoCommand(Command):
     required_parameter_count = 1
-    command = 'WHO'
+    command = "WHO"
 
     def from_user(self, mask, o=None, *_):
         # TODO: If the "o" parameter is passed only operators are returned
@@ -23,18 +23,19 @@ class WhoCommand(Command):
         if Channel.exists(mask):
             channel = Channel.get(mask)
             for channel_user in channel.users:
-                resp.append(
-                    RPL_WHOREPLY(self.actor, channel_user, str(channel))
-                )
+                resp.append(RPL_WHOREPLY(self.actor, channel_user, str(channel)))
         else:
-            if mask == '0':
-                mask = '*'
+            if mask == "0":
+                mask = "*"
             parser = abnf.wildcard(mask)
             for user in User.all():
                 # TODO: add check for servername
-                if any([abnf.parse(str, parser)
-                        for str
-                        in [user.hostname, user.realname, user.nickname]]):
+                if any(
+                    [
+                        abnf.parse(str, parser)
+                        for str in [user.hostname, user.realname, user.nickname]
+                    ]
+                ):
                     resp.append(RPL_WHOREPLY(self.actor, user, mask))
-        #resp.append(RPL_ENDOFWHO(self.user, str(channel)))
+        # resp.append(RPL_ENDOFWHO(self.user, str(channel)))
         return resp

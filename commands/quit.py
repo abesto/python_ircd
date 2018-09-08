@@ -6,18 +6,22 @@ from models.actorcollection import ActorCollection
 
 class QuitCommand(Command):
     required_parameter_count = 0
-    command = 'QUIT'
+    command = "QUIT"
     user_registration_command = True
 
-    def from_user(self, message='leaving', *_):
+    def from_user(self, message="leaving", *_):
         ret = []
         for channel in self.user.channels:
             channel.part(self.user)
             ret.append(
-                M(ActorCollection(channel.users),
-                  'PART', str(channel), message,
-                  prefix=str(self.user))
+                M(
+                    ActorCollection(channel.users),
+                    "PART",
+                    str(channel),
+                    message,
+                    prefix=str(self.user),
+                )
             )
         self.user.delete()
         self.actor.disconnect()
-        return ret + [M(self.actor, 'ERROR')]
+        return ret + [M(self.actor, "ERROR")]
