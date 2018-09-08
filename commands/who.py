@@ -3,8 +3,7 @@ from typing import List
 from commands.base import Command
 from include import abnf
 from include.numeric_responses import *
-from models.channel import Channel
-from models.user import User
+from models import db, Channel, User
 
 
 class WhoCommand(Command):
@@ -20,19 +19,19 @@ class WhoCommand(Command):
         # the item.
 
         resp = []
-        if Channel.exists(mask):
-            channel = Channel.get(mask)
+        if db.exists(Channel, mask):
+            channel = db.get(Channel, mask)
             for channel_user in channel.users:
                 resp.append(RPL_WHOREPLY(self.actor, channel_user, str(channel)))
         else:
             if mask == "0":
                 mask = "*"
-            parser = abnf.wildcard(mask)
-            for user in User.all():
+            parser = abnf.default_parser().wildcard(mask)
+            for user in db.all(User):
                 # TODO: add check for servername
                 if any(
                     [
-                        abnf.parse(str, parser)
+                        abnf.default_parser().parse(str, parser)
                         for str in [user.hostname, user.realname, user.nickname]
                     ]
                 ):

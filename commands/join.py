@@ -110,7 +110,7 @@ class JoinCommand(Command):
 
     def join(self, channel_name: str) -> List[Message]:
         """Verify channel key and join the channel"""
-        channel = self.get_channel(channel_name)
+        channel = Channel.by_name(channel_name)
         if self.got_valid_key_for(channel):
             channel.join(self.user)
             return self.join_message(channel)
@@ -161,13 +161,3 @@ class JoinCommand(Command):
         if channel.topic is not None:
             ret.append(RPL_TOPIC(self.actor, channel))
         return ret
-
-    @staticmethod
-    def get_channel(channel_name: str) -> Channel:
-        """Get a channel by name, or create it if it doesn't yet exist"""
-        if Channel.exists(channel_name):
-            channel = Channel.get(channel_name)
-        else:
-            channel = Channel(channel_name)
-            channel.save()
-        return channel

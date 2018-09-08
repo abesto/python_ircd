@@ -2,19 +2,22 @@
 Stores and manages the connections of users and other IRC servers
 """
 import logging
-from abc import ABC
-from typing import Optional
+from typing import Optional, TypeVar, Type
 
 from include.connection import Connection
 from include.message import Message
-from models import Error, User, Server
+from models import Error, User, Server, db
 from models.base import BaseModel
 
 LOG = logging.getLogger(__name__)
 
 
-class Actor(BaseModel[Connection], ABC):
+TActor = TypeVar("TActor", bound="Actor")
+
+
+class Actor(BaseModel[Connection]):
     """The connection and related methods of a single user or server"""
+
     connection: Connection
 
     def __init__(self, connection: Connection, **kwargs) -> None:
@@ -46,33 +49,28 @@ class Actor(BaseModel[Connection], ABC):
     def _set_key(self, new_key: Connection):
         self.connection = new_key
 
-    @staticmethod
-    def by_connection(connection: Connection):
+    @classmethod
+    def by_connection(cls: Type[TActor], connection: Connection) -> TActor:
         """
         Look up an `Actor` by a `Connection`, creating a new one
         if there's no `Actor` for the `Connection` yet
-        :rtype: Actor
         """
         try:
-            return Actor.get(connection)
+            return db.get(cls, connection)
         except Error:
-            actor = Actor(connection)
-            actor.save()
-            return actor
+            return cls(connection).save()
 
-    @staticmethod
-    def by_user(user: User):
+    @classmethod
+    def by_user(cls: Type[TActor], user: User) -> TActor:
         """
         Look up an `Actor` by a `User` instance
-        :rtype: Actor
         """
         return user.actor
 
-    @staticmethod
-    def by_server(server: Server):
+    @classmethod
+    def by_server(cls: Type[TActor], server: Server) -> TActor:
         """
         Look up an `Actor` by a `Server` instance
-        :rtype: Actor
         """
         return server.actor
 

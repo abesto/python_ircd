@@ -2,8 +2,7 @@ from typing import List
 
 from commands.base import Command
 from include.numeric_responses import *
-from models.actorcollection import ActorCollection
-from models.channel import Channel
+from models import db, ActorCollection, Channel
 
 
 class TopicCommand(Command):
@@ -12,9 +11,9 @@ class TopicCommand(Command):
 
     def from_user(self, channel_name, topic=None, *_):
         # TODO: ERR_NOCHANMODES, ERR_CHANOPRIVSNEEDED
-        if not Channel.exists(channel_name):
+        if not db.exists(Channel, channel_name):
             return ERR_NOSUCHCHANNEL(channel_name, self.actor)
-        channel = Channel.get(channel_name)
+        channel = db.get(Channel, channel_name)
         if self.user not in channel.users:
             return ERR_NOTONCHANNEL(channel_name, self.actor)
         if topic is None:

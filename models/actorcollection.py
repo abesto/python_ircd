@@ -54,6 +54,7 @@ class ActorCollection:
     def read(self):
         """Read doesn't make sense on an `ActorCollection`"""
         raise Error("read is undefined on ActorCollection")
+
     # pylint: enable=no-self-use
 
     def __str__(self):

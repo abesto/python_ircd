@@ -42,9 +42,9 @@ class TestNickCommand(unittest.TestCase):
         "NICK to the already set nickname"
         self.registered(user=True, nick=True)
         self.nickname_unavailable()
-        self.mock_user.get.return_value = self.user
+        self.mock_db.get.return_value = self.user
         self.assertEqual([], self.cmd.from_user(self.user.nickname))
-        self.mock_user.get.assert_called_with(self.user.nickname)
+        self.mock_db.get.assert_called_with(self.mock_user, self.user.nickname)
 
     def test_first_nick(self):
         "First NICK, USER is not received"
@@ -104,18 +104,20 @@ class TestNickCommand(unittest.TestCase):
 
     def nickname_unavailable(self):
         self.mock_user.get.return_value = self.users[1]
-        self.mock_user.get.side_effect = None
-        self.mock_user.exists.return_value = True
+        self.mock_db.get.side_effect = None
+        self.mock_db.exists.return_value = True
 
     def nickname_available(self):
-        self.mock_user.get.side_effect = models.Error()
-        self.mock_user.exists.return_value = False
+        self.mock_db.get.side_effect = models.Error()
+        self.mock_db.exists.return_value = False
 
     def setup_mocks(self):
         self.user_patcher = patch("commands.nick.User")
         self.actorcollection_patcher = patch("commands.nick.ActorCollection")
+        self.db_patcher = patch("commands.nick.db")
         self.mock_user = self.user_patcher.start()
         self.mock_actorcollection = self.actorcollection_patcher.start()
+        self.mock_db = self.db_patcher.start()
 
     def setup_users(self):
         self.users = [MagicMock(), MagicMock()]
@@ -135,3 +137,4 @@ class TestNickCommand(unittest.TestCase):
     def teardown_mocks(self):
         self.user_patcher.stop()
         self.actorcollection_patcher.stop()
+        self.db_patcher.stop()

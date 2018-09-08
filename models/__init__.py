@@ -11,6 +11,8 @@ from typing import Union
 
 
 from .error import Error
+from .base import BaseModel
+from .database import DEFAULT_DATABASE as db
 from .server import Server
 from .user import User
 from .actor import Actor

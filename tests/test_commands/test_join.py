@@ -87,7 +87,7 @@ class TestJoinCommand(unittest.TestCase):
         self.actorcollection_patcher = patch("commands.join.ActorCollection")
         self.mock_channel = self.channel_patcher.start()
         self.mock_actorcollection = self.actorcollection_patcher.start()
-        self.mock_channel.get.return_value = self.channel
+        self.mock_channel.by_name.return_value = self.channel
 
     def teardown_mocks(self):
         self.channel_patcher.stop()

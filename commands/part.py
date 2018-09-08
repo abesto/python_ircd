@@ -3,8 +3,7 @@ from typing import List
 from commands.base import Command
 from include.message import Message as M
 from include.numeric_responses import *
-from models.actorcollection import ActorCollection
-from models.channel import Channel
+from models import db, Channel, ActorCollection
 
 
 class PartCommand(Command):
@@ -17,10 +16,10 @@ class PartCommand(Command):
         ret = []
 
         for channel_name in channels:
-            if not Channel.exists(channel_name):
+            if not db.exists(Channel, channel_name):
                 ret.append(ERR_NOSUCHCHANNEL(channel_name, self.actor))
                 continue
-            channel = Channel.get(channel_name)
+            channel = db.get(Channel, channel_name)
             if self.user not in channel.users:
                 ret.append(ERR_NOTONCHANNEL(channel_name, self.actor))
                 continue

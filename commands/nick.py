@@ -12,6 +12,7 @@ from include.numeric_responses import (
     ERR_ERRONEUSNICKNAME,
     ERR_NICKNAMEINUSE,
 )
+from models import db
 from models.actorcollection import ActorCollection
 from models.server import Server
 from models.user import User, RegistrationStatus
@@ -147,13 +148,13 @@ class NickCommand(Command):
     def check_local_nickcollision(self):
         """Verify there's no nick collision on this server"""
         # no such nick yet
-        if not User.exists(self.params.nick):
+        if not db.exists(User, self.params.nick):
             return CheckResult()
         # client sending its own nickname
         if (
             self.user.registered.nick
             and self.user.registered.user
-            and self.user is User.get(self.params.nick)
+            and self.user is db.get(User, self.params.nick)
         ):
             return CheckResult(requested_and_current_nick_are_the_same=True)
         # real collision
@@ -199,7 +200,7 @@ class NickCommand(Command):
         """Renaming a registered user"""
         from_full = str(self.user)
         self.user.rename(self.params.nick)
-        targets = [self.actor] + Server.all()
+        targets = [self.actor] + db.all(Server)
         for channel in self.user.channels:
             targets += channel.users
         return [

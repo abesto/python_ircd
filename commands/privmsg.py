@@ -3,10 +3,7 @@ from typing import List
 from commands.base import Command
 from include.message import Message as M
 from include.numeric_responses import *
-from models.actor import Actor
-from models.actorcollection import ActorCollection
-from models.channel import Channel
-from models.user import User
+from models import db, Actor, ActorCollection, Channel, User
 
 
 class PrivmsgCommand(Command):
@@ -21,10 +18,10 @@ class PrivmsgCommand(Command):
         resp = []
         # TODO: check for ERR_TOOMANYTARGETS
         for receiver in receivers.split(","):
-            if Channel.exists(receiver):
+            if db.exists(Channel, receiver):
                 users = [
                     user
-                    for user in Channel.get(receiver).users
+                    for user in db.get(Channel, receiver).users
                     if user is not self.user
                 ]
                 resp.append(
@@ -36,10 +33,10 @@ class PrivmsgCommand(Command):
                         prefix=str(self.user),
                     )
                 )
-            elif User.exists(receiver):
+            elif db.exists(User, receiver):
                 resp.append(
                     M(
-                        Actor.by_user(User.get(receiver)),
+                        Actor.by_user(db.get(User, receiver)),
                         self.command,
                         str(receiver),
                         text,

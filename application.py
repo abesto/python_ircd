@@ -32,7 +32,7 @@ async def handle(reader: StreamReader, writer: StreamWriter):
             msg = Message.from_string(line)
             LOG.debug("<= %s %s", repr(msg.target), repr(msg))
             resp = DISPATCHER.dispatch(connection, msg)
-        except MessageError as exc:
+        except Exception as exc:
             LOG.exception(exc)
             actor = Actor.by_connection(connection)
             if (
