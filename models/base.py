@@ -11,7 +11,7 @@ TValue = TypeVar("TValue", bound="BaseModel")
 
 
 class BaseModel(Generic[TKey, TValue], ABC):
-    """Base blass for all models stored in the “database” `BaseModel.objects`"""
+    """Base class for all models stored in the “database” `BaseModel.objects`"""
 
     objects: Dict[Any, Dict] = {}
 

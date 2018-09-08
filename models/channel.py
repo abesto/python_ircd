@@ -1,7 +1,7 @@
-from typing import TypeVar
+from typing import TypeVar, List
 
 from include import abnf
-from models import Error
+from models import Error, User
 from models.base import BaseModel
 
 TChannel = TypeVar("TChannel", bound="Channel")
@@ -14,16 +14,17 @@ class ChannelMode(object):
 
 
 class Channel(BaseModel[str, TChannel]):
-    def __init__(self, name):
+    prefix: str
+    id: str
+    name: str
+    users: List[User]
+
+    def __init__(self, name: str) -> None:
+        super().__init__(name)
         if not self.is_valid_name(name):
             raise Error("Erroneous channel name")
 
-        raw = abnf.default_parser().parse_channel(name)
-        self.mode = ChannelMode
-        self.prefix = raw[0]
-        self.id = raw[1] if self.prefix == "!" else None
-        self.name = raw[2] if self.prefix == "!" else raw[1]
-
+        self.mode = ChannelMode()
         self.users = []
         self.topic = None
 
@@ -48,4 +49,7 @@ class Channel(BaseModel[str, TChannel]):
             user.part(self)
 
     def _set_key(self, new_key):
-        self.name = new_key
+        raw = abnf.default_parser().parse_channel(new_key)
+        self.prefix = raw[0]
+        self.id = raw[1] if self.prefix == "!" else None
+        self.name = raw[2] if self.prefix == "!" else raw[1]
