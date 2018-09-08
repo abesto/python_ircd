@@ -1,9 +1,9 @@
 import asyncio
 
+import models
 from models.actor import Actor
 from models.server import Server
 from models.user import User
-import models
 
 
 class Error(models.Error):

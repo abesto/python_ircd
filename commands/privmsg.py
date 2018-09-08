@@ -1,12 +1,12 @@
+from typing import List
+
+from commands.base import Command
 from include.message import Message as M
 from include.numeric_responses import *
-
 from models.actor import Actor
 from models.actorcollection import ActorCollection
 from models.channel import Channel
 from models.user import User
-
-from commands.base import Command
 
 
 class PrivmsgCommand(Command):
@@ -51,3 +51,6 @@ class PrivmsgCommand(Command):
             else:
                 resp.append(ERR_NOSUCHNICK(receiver, self.actor))
         return resp
+
+    def from_server(self, *args) -> List[Message]:
+        raise Exception("IRC: Server Protocol (RFC2813) is not (yet?) implemented")

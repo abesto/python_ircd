@@ -46,7 +46,7 @@ class User(BaseModel):
         return str(self)
 
 
-class UserMode(object):
+class UserMode:
     away = False
     invisible = False
     wallops = False
@@ -56,11 +56,23 @@ class UserMode(object):
     notices = False
 
 
-class RegistrationStatus(object):
-    def __init__(self):
-        self.nick = False
-        self.user = False
+# pylint: disable=too-few-public-methods
+class RegistrationStatus:
+    """Represents the registration state of a user"""
+
+    def __init__(self, *, nick: bool = False, user: bool = False) -> None:
+        self.nick: bool = nick
+        self.user: bool = user
 
     @property
     def both(self):
+        """True iff `self.nick and self.user`"""
         return self.nick and self.user
+
+    def __hash__(self) -> int:
+        return int(self.nick) + 2 * int(self.user)
+
+    def __eq__(self, o: object) -> bool:
+        if not isinstance(o, RegistrationStatus):
+            return False
+        return self.nick == o.nick and self.user == o.user

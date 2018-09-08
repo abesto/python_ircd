@@ -1,8 +1,8 @@
 import unittest
 from mock import *
 
-from commands.user import UserCommand
 from commands._welcome import welcome
+from commands.user import UserCommand
 from include.numeric_responses import *
 
 

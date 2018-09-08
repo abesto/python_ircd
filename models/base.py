@@ -2,7 +2,6 @@ from typing import List, TypeVar, Type, Dict, Any
 
 from models import Error
 
-
 T = TypeVar("T", bound="BaseModel")
 
 

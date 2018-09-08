@@ -1,6 +1,7 @@
-from include.message import Message as M
+from typing import List
 
 from commands.base import Command
+from include.message import Message as M, Message
 from models.actorcollection import ActorCollection
 
 
@@ -25,3 +26,6 @@ class QuitCommand(Command):
         self.user.delete()
         self.actor.disconnect()
         return ret + [M(self.actor, "ERROR")]
+
+    def from_server(self, *args) -> List[Message]:
+        raise Exception("IRC: Server Protocol (RFC2813) is not (yet?) implemented")

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="MypyConfigService">
+    <option name="mypyArguments" value="--ignore-missing-imports" />
+    <option name="pathToMypy" value="$USER_HOME$/.local/share/virtualenvs/python-ircd-Y8YqMGgK/bin/mypy" />
+  </component>
+</project>

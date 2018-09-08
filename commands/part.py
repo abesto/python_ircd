@@ -1,10 +1,10 @@
-from include.numeric_responses import *
-from include.message import Message as M
-
-from models.channel import Channel
-from models.actorcollection import ActorCollection
+from typing import List
 
 from commands.base import Command
+from include.message import Message as M
+from include.numeric_responses import *
+from models.actorcollection import ActorCollection
+from models.channel import Channel
 
 
 class PartCommand(Command):
@@ -36,3 +36,6 @@ class PartCommand(Command):
             self.user.part(channel)
 
         return ret
+
+    def from_server(self, *args) -> List[Message]:
+        raise Exception("IRC: Server Protocol (RFC2813) is not (yet?) implemented")

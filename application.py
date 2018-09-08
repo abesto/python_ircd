@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-import logging
 import asyncio
+import logging
 from asyncio import StreamReader, StreamWriter
 
 log = logging.getLogger()

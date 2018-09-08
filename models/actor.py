@@ -1,12 +1,10 @@
-from abc import ABC
-
 import logging
+from abc import ABC
 
 from include.connection import Connection
 from include.message import Message
 from models import Error
 from models.base import BaseModel
-
 
 log = logging.getLogger(__name__)
 
@@ -18,7 +16,6 @@ class Actor(BaseModel, ABC):
         self.password = None
         self.disconnected = False
         self.connection_dropped = False
-
         self.connection = connection
 
         self._server = None

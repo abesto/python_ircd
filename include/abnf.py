@@ -3,6 +3,7 @@ Parse incoming messages using pyparsing.
 Wildcards are recognized using regular expressions.
 """
 
+from pydispatch import dispatcher
 from pyparsing import (
     ParseException,
     oneOf,
@@ -18,7 +19,6 @@ from pyparsing import (
     StringEnd,
     Regex,
 )
-from pydispatch import dispatcher
 
 from config import config
 

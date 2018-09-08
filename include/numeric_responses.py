@@ -1,4 +1,5 @@
 from config import config
+from models import Target
 from .message import Message
 
 
@@ -66,6 +67,7 @@ def RPL_NAMEREPLY(target, channel):
     # TODO: choose prefix based on channel mode
     prefix = "="
     # TODO: add user prefix if needed
+    # TODO: this would probably need to be split into multiple messages if the user list is long
     nicks = " ".join(channel_user.nickname for channel_user in channel.users)
     return _M(target, "353", prefix, str(channel), nicks)
 
@@ -110,6 +112,10 @@ def ERR_NORECIPIENT(command, target):
 
 def ERR_NOTEXTTOSEND(target):
     return _M(target, "412", "No text to send")
+
+
+def ERR_UNKNOWNCOMMAND(command: str, target: Target):
+    return _M(target, "421", "{} :Unknown command".format(command))
 
 
 def ERR_NONICKNAMEGIVEN(target):

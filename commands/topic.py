@@ -1,10 +1,9 @@
-from include.numeric_responses import *
-
-import models
-from models.channel import Channel
-from models.actorcollection import ActorCollection
+from typing import List
 
 from commands.base import Command
+from include.numeric_responses import *
+from models.actorcollection import ActorCollection
+from models.channel import Channel
 
 
 class TopicCommand(Command):
@@ -30,3 +29,6 @@ class TopicCommand(Command):
         # Forward message to others on the channel
         self.message.target = ActorCollection(channel.users)
         return self.message
+
+    def from_server(self, *args) -> List[Message]:
+        raise Exception("IRC: Server Protocol (RFC2813) is not (yet?) implemented")

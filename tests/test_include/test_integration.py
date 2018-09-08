@@ -1,8 +1,8 @@
 import asynctest
 from mock import Mock
 
-from include.router import Router
 from include.message import Message
+from include.router import Router
 from models import Actor, ActorCollection
 
 

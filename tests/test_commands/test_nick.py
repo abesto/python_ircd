@@ -1,11 +1,12 @@
 import unittest
 from mock import *
 
-from commands.nick import NickCommand
-from commands._welcome import welcome
-from include.numeric_responses import *
-from include.message import Message as M
 import models
+from commands._welcome import welcome
+from commands.nick import NickCommand
+from include.message import Message as M
+from include.numeric_responses import *
+from models.user import RegistrationStatus
 
 
 class TestNickCommand(unittest.TestCase):
@@ -21,19 +22,19 @@ class TestNickCommand(unittest.TestCase):
         self.teardown_mocks()
 
     def test_no_nick(self):
-        self.assertEqual(self.cmd.from_user(), ERR_NONICKNAMEGIVEN(self.cmd.actor))
+        self.assertEqual(self.cmd.from_user(), [ERR_NONICKNAMEGIVEN(self.cmd.actor)])
 
     def test_invalid_nick(self):
         for nick in ["verylongnickname", u"\1special\300"]:
             self.assertEqual(
-                ERR_ERRONEUSNICKNAME(nick, self.actor), self.cmd.from_user(nick)
+                [ERR_ERRONEUSNICKNAME(nick, self.actor)], self.cmd.from_user(nick)
             )
 
     def test_collision(self):
         "Nickname collision"
         self.nickname_unavailable()
         self.assertEqual(
-            ERR_NICKNAMEINUSE(self.users[1].nickname, self.cmd.actor),
+            [ERR_NICKNAMEINUSE(self.users[1].nickname, self.cmd.actor)],
             self.cmd.from_user(self.users[1].nickname),
         )
 
@@ -42,7 +43,7 @@ class TestNickCommand(unittest.TestCase):
         self.registered(user=True, nick=True)
         self.nickname_unavailable()
         self.mock_user.get.return_value = self.user
-        self.assertIsNone(self.cmd.from_user(self.user.nickname))
+        self.assertEqual([], self.cmd.from_user(self.user.nickname))
         self.mock_user.get.assert_called_with(self.user.nickname)
 
     def test_first_nick(self):
@@ -55,7 +56,9 @@ class TestNickCommand(unittest.TestCase):
     def test_second_nick_before_user(self):
         "Non-first NICK, USER is not received"
         self.registered(nick=True)
-        self.assertEqual(M(self.actor, "NICK", "foobar"), self.cmd.from_user("foobar"))
+        self.assertEqual(
+            [M(self.actor, "NICK", "foobar")], self.cmd.from_user("foobar")
+        )
         self.assertTrue(self.user.registered.nick)
 
     def test_registration_completed(self):
@@ -79,28 +82,25 @@ class TestNickCommand(unittest.TestCase):
             channel.users = [Mock(), Mock()]
 
         self.assertEqual(
-            M(
-                self.mock_actorcollection(
-                    [self.actor]
-                    + mock_server.all()
-                    + channels[0].users
-                    + channels[1].users
-                ),
-                "NICK",
-                "foobar",
-                prefix=str(self.user),
-            ),
+            [
+                M(
+                    self.mock_actorcollection(
+                        [self.actor]
+                        + mock_server.all()
+                        + channels[0].users
+                        + channels[1].users
+                    ),
+                    "NICK",
+                    "foobar",
+                    prefix=str(self.user),
+                )
+            ],
             self.cmd.from_user("foobar"),
         )
 
-    def registered(self, user=None, nick=None):
-        if user is not None:
-            self.user.registered.user = user
-        if nick is not None:
-            self.user.registered.nick = nick
-        self.actor.is_user.return_value = (
-            self.user.registered.user or self.user.registered.nick
-        )
+    def registered(self, user=False, nick=False):
+        self.user.registered = RegistrationStatus(user=user, nick=nick)
+        self.actor.is_user.return_value = user or nick
 
     def nickname_unavailable(self):
         self.mock_user.get.return_value = self.users[1]

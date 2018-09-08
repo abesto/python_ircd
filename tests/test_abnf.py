@@ -2,8 +2,8 @@
 
 import unittest
 
-from include import abnf
 from config import config
+from include import abnf
 
 
 class AbnfTest(unittest.TestCase):

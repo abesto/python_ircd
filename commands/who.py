@@ -1,10 +1,10 @@
-from include import abnf
-from include.numeric_responses import *
-
-from models.channel import Channel
-from models.user import User
+from typing import List
 
 from commands.base import Command
+from include import abnf
+from include.numeric_responses import *
+from models.channel import Channel
+from models.user import User
 
 
 class WhoCommand(Command):
@@ -39,3 +39,6 @@ class WhoCommand(Command):
                     resp.append(RPL_WHOREPLY(self.actor, user, mask))
         # resp.append(RPL_ENDOFWHO(self.user, str(channel)))
         return resp
+
+    def from_server(self, *args) -> List[Message]:
+        raise Exception("IRC: Server Protocol (RFC2813) is not (yet?) implemented")

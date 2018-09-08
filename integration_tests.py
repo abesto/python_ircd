@@ -1,7 +1,8 @@
-import unittest
-import socket
-import time
 import errno
+import time
+
+import socket
+import unittest
 
 from config import config
 

@@ -1,12 +1,10 @@
 from dns import resolver, reversename
+from typing import List
 
-from config import config
-
-from models.user import User
-from include.numeric_responses import *
-
-from ._welcome import welcome
 from commands.base import Command
+from include.numeric_responses import *
+from models.user import User
+from ._welcome import welcome
 
 
 class UserCommand(Command):
@@ -36,3 +34,6 @@ class UserCommand(Command):
         if self.user.registered.nick:
             self.user.save()
             return welcome(self.actor)
+
+    def from_server(self, *args) -> List[Message]:
+        raise Exception("IRC: Server Protocol (RFC2813) is not (yet?) implemented")
