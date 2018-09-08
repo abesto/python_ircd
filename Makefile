@@ -3,7 +3,7 @@
 all: black test
 
 setup:
-	pipenv --dev
+	pipenv install --dev
 
 black:
 	pipenv run black .

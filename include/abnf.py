@@ -2,8 +2,8 @@
 Parse incoming messages using pyparsing.
 Wildcards are recognized using regular expressions.
 """
-from typing import List, Any, Optional as TOptional, Union, Tuple
-
+# pylint: disable=import-error
+from pydispatch import dispatcher
 from pyparsing import (
     ParseException,
     oneOf,
@@ -20,13 +20,12 @@ from pyparsing import (
     Regex,
     ParserElement,
 )
-
-# pylint: disable=import-error
-from pydispatch import dispatcher
-
-# pylint: enable=import-error
+from typing import List, Any, Optional as TOptional, Union, Tuple
 
 from config import config
+
+
+# pylint: enable=import-error
 
 
 def flatten(data) -> List[Any]:

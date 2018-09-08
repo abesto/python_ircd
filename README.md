@@ -4,9 +4,11 @@ python-ircd [![Build Status](https://secure.travis-ci.org/abesto/python-ircd.png
 Aims to be a full-featured IRC server, started as a way to get some Python practice. The primary priority is complete support of the three RFCs describing the IRC protocol.
 
 # Running
- 1. Optionally set up a [virtualenv](http://pypi.python.org/pypi/virtualenv) with Python 2.7.
- 2. Install dependencies with `pip install -r requirements.txt`
- 3. Run the server with `python application.py`
+ 1. Set up development environment with `make setup`
+ 1. Run the server with `make listen`
+ 1. Reformat code and run tests with `make`
+ 
+See the [`Makefile`](./Makefile) for additional targets you can use for more granular control.
 
 # Status
 The basic framework is mostly stable. Command handlers get an abstract message object, operate on the database, and return similar abstract message objects. The database currently consists of simplistic in-memory dictionaries. Messages are passed to the handlers and to the targets in a generic way. Incoming messages are parsed with pyparsing. No server-server communication yet.
@@ -24,11 +26,19 @@ The basic framework is mostly stable. Command handlers get an abstract message o
  * [RFC2813 - Internet Relay Chat: Server Protocol](http://www.irchelp.org/irchelp/rfc/rfc2813.txt): 0%
 
 # Dependencies
-python-ircd is developed on Python 2.7
+Development environment, you need to install these yourself on your system:
+ * `pipenv`: dependency management
+ * `make`: simple way to run tasks
+ 
+Code quality tools, set up by `make setup` via `pipenv`:
+ * `nose`, `mock`: for tests, obviously
+ * `asynctest`: less painful testing when `asyncio` is involved
+ * `mypy`: static type checking
+ * `pylint`: code quality
+ * `black`: code formatting
 
 Used libraries:
- * **gevent**: Networking
- * **dnspython**: Reverse DNS lookups
- * **pyparsing**: Parsing incoming messages
- * **PyDispatcher**: Notifying parts of the system to runtime config changes
+ * `dnspython3`: Reverse DNS lookups
+ * `pyparsing`: Parsing incoming messages
+ * `PyDispatcher`: Notifying parts of the system to runtime config changes
 

@@ -1,9 +1,8 @@
-from typing import TypeVar, Type
+from typing import TypeVar
 
 from include import abnf
-from models import Error, db
+from models import Error
 from models.base import BaseModel
-
 
 TChannel = TypeVar("TChannel", bound="Channel")
 

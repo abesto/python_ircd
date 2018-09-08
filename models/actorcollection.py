@@ -5,8 +5,8 @@
 
 import asyncio
 
-from include.message import Message
 import models
+from include.message import Message
 from models.actor import Actor
 from models.server import Server
 from models.user import User

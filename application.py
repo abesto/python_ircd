@@ -2,8 +2,8 @@
 `main`: Main entrypoint of python-ircd. Runs the server.
 """
 
-import logging
 import asyncio
+import logging
 from asyncio import StreamReader, StreamWriter
 
 from config import config

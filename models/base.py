@@ -6,7 +6,6 @@ from typing import TypeVar, Dict, Generic, Any
 
 from models import Error
 
-
 TKey = TypeVar("TKey")
 TValue = TypeVar("TValue", bound="BaseModel")
 
