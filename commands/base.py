@@ -71,6 +71,8 @@ class Command(Generic[TMessage], ABC):
             "`common` called on a `Command` subclass that was not expecting it"
         )
 
+    # pylint: enable=no-self-use
+
     def handle(self, actor: Actor, message: TMessage):
         """Execute this command, with parameters defined in the `message` sent by `actor`"""
         self.cleanup()

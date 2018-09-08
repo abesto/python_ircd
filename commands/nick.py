@@ -94,6 +94,8 @@ class NickCommand(Command):
             return checks_result.errors
         return self.run_handler()
 
+    # pylint: enable=arguments-differ,keyword-arg-before-vararg
+
     def initialize_user_if_new(self):
         """
         If the NICK command was issued by a user, and we don't yet have
@@ -128,7 +130,7 @@ class NickCommand(Command):
 
     def check_invalid_nick(self) -> CheckResult:
         """Verify that the nickname we received is valid"""
-        parsed_nick = abnf.parse(self.params.nick, abnf.nickname)
+        parsed_nick = abnf.default_parser().parse_nickname(self.params.nick)
         if len(self.params.nick) > 9 or parsed_nick != self.params.nick:
             nick = self.params.nick.replace(" ", "_")
             return CheckResult(errors=[ERR_ERRONEUSNICKNAME(nick, self.actor)])
@@ -139,6 +141,8 @@ class NickCommand(Command):
         """Verify there's no nick collision anywhere on the IRC network"""
         # TODO: check for ERR_NICKCOLLISION
         return CheckResult()
+
+    # pylint: enable=no-self-use
 
     def check_local_nickcollision(self):
         """Verify there's no nick collision on this server"""

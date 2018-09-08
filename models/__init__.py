@@ -9,17 +9,13 @@ Models representing the “database” of the IRC server, plus some abstractions
 """
 from typing import Union
 
+
+from .error import Error
 from .actor import Actor
 from .actorcollection import ActorCollection
 from .channel import Channel
 from .server import Server
 from .user import User
-
-
-class Error(Exception):
-    """Class or superclass of all errors raised by models"""
-
-    pass
 
 
 Target = Union[Actor, ActorCollection, Server]

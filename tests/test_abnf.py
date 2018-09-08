@@ -10,39 +10,41 @@ class AbnfTest(unittest.TestCase):
     def setUp(self):
         config.set("parser", "trailing_spaces", "false")
         config.set("parser", "soft_eol", "false")
+        self.parser = abnf.default_parser()
 
     def _test(self, parser, cases):
         for input, expected in cases.items():
-            actual = abnf.parse(input, parser)
+            actual = self.parser.parse(input, parser)
             # print input, expected, actual
             self.assertEqual(expected, actual)
 
     def test_nickname(self):
         self._test(
-            abnf.nickname, {"333": False, "abcd": "abcd", "[]\`_^{|}": "[]\`_^{|}"}
+            self.parser.nickname,
+            {"333": None, "abcd": "abcd", "[]\`_^{|}": "[]\`_^{|}"},
         )
 
     def test_command(self):
         self._test(
-            abnf.command,
+            self.parser.command,
             {
-                "1": False,
-                "11": False,
+                "1": None,
+                "11": None,
                 "100": "100",
-                "2fo": False,
-                "foo2": False,
+                "2fo": None,
+                "foo2": None,
                 "fooBAR": "fooBAR",
             },
         )
 
     def test_params(self):
         self._test(
-            abnf.params,
+            self.parser.params,
             {
                 "": "",
                 " ": "",
                 " a": ["a"],
-                " a  b": False,
+                " a  b": None,
                 " a b": ["a", "b"],
                 " a b :asdf qwer": ["a", "b", "asdf qwer"],
                 " 1 2 3 4 5 6 7 8 9 10 11 12 13 14 asdf qwer": [
@@ -58,18 +60,18 @@ class AbnfTest(unittest.TestCase):
 
     def test_shortname(self):
         self._test(
-            abnf.shortname,
-            {"": False, "a": "a", "foobar": "foobar", "a-foob-baz": "a-foob-baz"},
+            self.parser.shortname,
+            {"": None, "a": "a", "foobar": "foobar", "a-foob-baz": "a-foob-baz"},
         )
 
     def test_hostname(self):
         self._test(
-            abnf.hostname,
+            self.parser.hostname,
             {
-                "": False,
+                "": None,
                 "a": "a",
                 "a-b": "a-b",
-                "a-b.": False,
+                "a-b.": None,
                 "a-b.c": "a-b.c",
                 "a.b-c": "a.b-c",
                 # This looks wrong, but the grammar in RFC2812 allows it
@@ -80,17 +82,17 @@ class AbnfTest(unittest.TestCase):
 
     def test_ip4addr(self):
         self._test(
-            abnf.ip4addr,
+            self.parser.ip4addr,
             {
-                "": False,
-                "1.": False,
-                "1.2": False,
-                "1.2.": False,
-                "1.2.3": False,
-                "1.2.3.": False,
+                "": None,
+                "1.": None,
+                "1.2": None,
+                "1.2.": None,
+                "1.2.3": None,
+                "1.2.3.": None,
                 "1.2.3.4": "1.2.3.4",
-                "1.2.3.4.": False,
-                ".1.2.3.4": False,
+                "1.2.3.4.": None,
+                ".1.2.3.4": None,
                 "127.0.0.1": "127.0.0.1",
                 "0.0.0.0": "0.0.0.0",
                 "999.999.999.999": "999.999.999.999",
@@ -99,12 +101,12 @@ class AbnfTest(unittest.TestCase):
 
     def test_user(self):
         self._test(
-            abnf.user,
+            self.parser.user,
             {
-                "a b": False,
-                "a\rb": False,
-                "a\nb": False,
-                "a@b": False,
+                "a b": None,
+                "a\rb": None,
+                "a\nb": None,
+                "a@b": None,
                 "asdf": "asdf",
                 "!#^QWER": "!#^QWER",
             },
@@ -112,7 +114,7 @@ class AbnfTest(unittest.TestCase):
 
     def test_message(self):
         self._test(
-            abnf.message,
+            self.parser.message,
             {
                 "JOIN #a\r\n": ["", "JOIN", "#a"],
                 ":prefix COMMAND param1 :param is long\r\n": [
@@ -125,18 +127,18 @@ class AbnfTest(unittest.TestCase):
         )
 
     def test_trailing_spaces(self):
-        self.assertFalse(abnf.parse("JOIN #a \r\n", abnf.message))
+        self.assertIsNone(self.parser.parse("JOIN #a \r\n", self.parser.message))
         config.set("parser", "trailing_spaces", "true")
         self.assertListEqual(
-            ["", "JOIN", "#a"], abnf.parse("JOIN #a   \r\n", abnf.message)
+            ["", "JOIN", "#a"], self.parser.parse("JOIN #a   \r\n", self.parser.message)
         )
 
     def test_soft_eol(self):
-        self.assertFalse(abnf.parse("JOIN #a\r", abnf.message))
-        self.assertFalse(abnf.parse("JOIN #a\n", abnf.message))
+        self.assertIsNone(self.parser.parse("JOIN #a\r", self.parser.message))
+        self.assertIsNone(self.parser.parse("JOIN #a\n", self.parser.message))
         config.set("parser", "soft_eol", "true")
         self._test(
-            abnf.message,
+            self.parser.message,
             {"JOIN #a\r": ["", "JOIN", "#a"], "JOIN #a\n": ["", "JOIN", "#a"]},
         )
 
@@ -146,18 +148,20 @@ class AbnfTest(unittest.TestCase):
         Problem: Fails to parse \r\n terminated messages when soft_eol is on
         """
         config.set("parser", "soft_eol", "true")
-        self.assertEqual(["", "JOIN", "#a"], abnf.parse("JOIN #a\r\n", abnf.message))
+        self.assertEqual(
+            ["", "JOIN", "#a"], self.parser.parse("JOIN #a\r\n", self.parser.message)
+        )
 
     def test_trailing_spaces_and_soft_eol(self):
         config.set("parser", "soft_eol", "true")
         config.set("parser", "trailing_spaces", "true")
         self.assertListEqual(
-            ["", "JOIN", "#a"], abnf.parse("JOIN #a   \r", abnf.message)
+            ["", "JOIN", "#a"], self.parser.parse("JOIN #a   \r", self.parser.message)
         )
 
     def test_channel(self):
         self._test(
-            abnf.channel,
+            self.parser.channel,
             {
                 "#foo": ["#", "foo"],
                 "#foo:bar": ["#", "foo", "bar"],
@@ -168,10 +172,10 @@ class AbnfTest(unittest.TestCase):
 
     def test_wildcards(self):
         self._test(
-            abnf.wildcard("a?b"),
-            {"abb": "abb", "a3b": "a3b", "ab": False, "xab": False, "abx": False},
+            self.parser.wildcard("a?b"),
+            {"abb": "abb", "a3b": "a3b", "ab": None, "xab": None, "abx": None},
         )
         self._test(
-            abnf.wildcard("a*b"),
-            {"ab": "ab", "a foobar b": "a foobar b", "qab": False, "abq": False},
+            self.parser.wildcard("a*b"),
+            {"ab": "ab", "a foobar b": "a foobar b", "qab": None, "abq": None},
         )

@@ -21,7 +21,8 @@ class Message(object):
     def from_string(string):
         if len(string) > 512:
             raise Error("Message must not be longer than 512 characters")
-        raw = abnf.parse(string, abnf.message)
+        parser = abnf.default_parser()
+        raw = parser.parse(string, parser.message)
         if not raw:
             raise Error('Failed to parse message: "{}"'.format(string))
         if config.get("parser", "lowercase_commands"):

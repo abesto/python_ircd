@@ -15,7 +15,7 @@ class Channel(BaseModel):
         if not self.is_valid_name(name):
             raise Error("Erroneous channel name")
 
-        raw = abnf.parse(name, abnf.channel)
+        raw = abnf.default_parser().parse_channel(name)
         self.mode = ChannelMode
         self.prefix = raw[0]
         self.id = raw[1] if self.prefix == "!" else None
@@ -29,7 +29,7 @@ class Channel(BaseModel):
 
     @staticmethod
     def is_valid_name(name):
-        return bool(abnf.parse(name, abnf.channel))
+        return bool(abnf.default_parser().parse_channel(name))
 
     def get_key(self):
         return str(self)

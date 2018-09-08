@@ -97,6 +97,8 @@ class JoinCommand(Command):
             ]
         )
 
+    # pylint: enable=arguments-differ,keyword-arg-before-vararg
+
     def from_server(self, *args):
         raise Exception("IRC: Server Protocol (RFC2813) is not (yet?) implemented")
 
@@ -120,11 +122,15 @@ class JoinCommand(Command):
         # TODO implement `part_all_channels`
         return []
 
+    # pylint: enable=no-self-use
+
     # pylint: disable=no-self-use,unused-argument
     def got_valid_key_for(self, channel: Channel) -> bool:
         """Verify that the channel key received for `channel` is correct"""
         # TODO based on self.parameters.get_key_for_channel_name and channel
         return True
+
+    # pylint: enable=no-self-use,unused-argument
 
     def no_such_channel_message(self, channel_name: str) -> List[Message]:
         """Instantiate `ERR_NOSUCHCHANNEL"""
@@ -134,6 +140,8 @@ class JoinCommand(Command):
     def invalid_key_message(self, channel: Channel) -> List[Message]:
         """TODO implement invalid_key_message"""
         return []
+
+    # pylint: enable=no-self-use,unused-argument
 
     def join_message(self, channel: Channel) -> List[Message]:
         """

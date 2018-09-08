@@ -76,3 +76,6 @@ class RegistrationStatus:
         if not isinstance(o, RegistrationStatus):
             return False
         return self.nick == o.nick and self.user == o.user
+
+
+# pylint: enable=too-few-public-methods
