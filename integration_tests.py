@@ -22,14 +22,14 @@ class Client:
     timeout = 0.2
     timeout_step = 0.001
 
-    def __init__(self, name: str, test_case: asynctest.TestCase) -> None:
+    def __init__(self, name: str, test_case: asynctest.TestCase, port: int) -> None:
         self.name = name
         self.test_case = test_case
         self.socket = socket.socket()
         self.socket.connect(
             (
                 config.get("server", "listen_host"),
-                config.getint("server", "listen_port"),
+                port
             )
         )
         self.socket.setblocking(False)
@@ -74,10 +74,13 @@ class ServerClientTests(asynctest.TestCase):
     """
 
     async def setUp(self):
+        config.set("server", "listen_host", "127.0.0.1")
+        config.set("server", "listen_port", "0")
         self.server = await create_server(self.loop)
-        self.client_al = Client("al", self)
-        self.client_bob = Client("bob", self)
-        self.client_clair = Client("clair", self)
+        self.port = self.server.sockets[0].getsockname()[1]
+        self.client_al = Client("al", self, self.port)
+        self.client_bob = Client("bob", self, self.port)
+        self.client_clair = Client("clair", self, self.port)
 
     async def tearDown(self):
         self.client_al.close()
@@ -155,7 +158,7 @@ class ServerClientTests(asynctest.TestCase):
         self.client_al.write("QUIT leaving")
         await self.client_al.expect(":localhost ERROR")
         self.client_al.close()
-        self.client_al = Client(self.client_al.name, self)
+        self.client_al = Client(self.client_al.name, self, self.port)
         await self.test_login_nick_first(self.client_al)
 
     async def test_direct_message(self):
