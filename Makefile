@@ -12,10 +12,10 @@ pylint:
 	pipenv run pylint *.py $(shell ls */__init__.py  | cut -f1 -d/)
 
 unittest:
-	pipenv run nosetests tests
+	pipenv run python -m unittest
 
 integration-test:
-	pipenv run nosetests integration_tests.py
+	pipenv run python -m unittest integration_tests.py
 
 mypy:
 	pipenv run mypy . --ignore-missing-imports

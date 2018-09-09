@@ -1,5 +1,5 @@
 import unittest
-from mock import *
+from unittest.mock import *
 
 from commands._welcome import welcome
 from commands.user import UserCommand

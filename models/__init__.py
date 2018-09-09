@@ -9,6 +9,11 @@ Models representing the “database” of the IRC server, plus some abstractions
 """
 from typing import Union
 
+
+Target = Union["Actor", "ActorCollection"]
+
+
+# pylint: disable=wrong-import-position
 from .error import Error
 from .base import BaseModel
 from .database import DEFAULT_DATABASE as db
@@ -17,5 +22,3 @@ from .channel import Channel
 from .server import Server
 from .actor import Actor
 from .actorcollection import ActorCollection
-
-Target = Union[Actor, ActorCollection]

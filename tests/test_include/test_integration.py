@@ -1,5 +1,5 @@
 import asynctest
-from mock import Mock
+from unittest.mock import Mock
 
 from include.message import Message
 from include.router import Router
@@ -9,6 +9,9 @@ from models import Actor, ActorCollection
 class ActorDisconnectOnWrite(Actor):
     def write(self, message):
         self.disconnect()
+
+    async def flush(self):
+        pass
 
 
 class IntegrationTest(asynctest.TestCase):

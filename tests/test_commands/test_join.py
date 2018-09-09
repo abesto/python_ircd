@@ -1,5 +1,5 @@
 import unittest
-from mock import *
+from unittest.mock import *
 
 from commands.join import JoinCommand
 from include.message import Message as M

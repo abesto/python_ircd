@@ -9,8 +9,6 @@ pydispatcher = "*"
 "dnspython3" = "*"
 
 [dev-packages]
-nose = "*"
-mock = "*"
 asynctest = "*"
 mypy = "*"
 pylint = "*"

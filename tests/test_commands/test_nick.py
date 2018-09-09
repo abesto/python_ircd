@@ -1,5 +1,5 @@
 import unittest
-from mock import *
+from unittest.mock import *
 
 import models
 from commands._welcome import welcome
