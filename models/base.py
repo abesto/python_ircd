@@ -18,7 +18,7 @@ class BaseModel(Generic[TKey, TValue], ABC):
     def __init__(self, key: TKey) -> None:
         self._set_key(key)
 
-    def save(self: TValue) -> TValue:
+    def save(self):
         """Save the instance into the database"""
         from models import db
 

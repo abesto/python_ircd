@@ -9,7 +9,7 @@ black:
 	pipenv run black .
 
 pylint:
-	pipenv run pylint *.py $(shell ls */__init__.py  | cut -f1 -d/)
+	pipenv run pylint python_ircd
 
 unittest:
 	pipenv run python -m unittest
@@ -18,7 +18,7 @@ integration-test:
 	pipenv run python -m unittest integration_tests.py
 
 mypy:
-	pipenv run mypy . --ignore-missing-imports
+	pipenv run mypy $(CURDIR) --ignore-missing-imports
 
 test: mypy unittest integration-test
 
