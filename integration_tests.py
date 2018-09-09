@@ -1,5 +1,5 @@
 """
-Test-drive a running python-ircd instance via socket communication
+Test-drive a running python_ircd instance via socket communication
 with multiple clients.
 """
 import errno
@@ -64,7 +64,7 @@ class Client:
 
 class ServerClientTests(asynctest.TestCase):
     """
-    Test-drive a running python-ircd instance via socket communication
+    Test-drive a running python_ircd instance via socket communication
     with multiple clients.
     """
 

@@ -1,4 +1,4 @@
-python-ircd [![Build Status](https://secure.travis-ci.org/abesto/python-ircd.png)](http://travis-ci.org/abesto/python-ircd)
+python_ircd [![Build Status](https://secure.travis-ci.org/abesto/python_ircd.png)](http://travis-ci.org/abesto/python_ircd)
 ===========
 
 Aims to be a full-featured IRC server, started as a way to get some Python practice. The primary priority is complete support of the three RFCs describing the IRC protocol.

@@ -2,5 +2,5 @@
 Currently supported commands: NICK, USER, JOIN, PART, PRIVMSG, PING, WHO, TOPIC, QUIT
 
 See the project page on GitHub for detailed status information:
-https://github.com/abesto/python-ircd
+https://github.com/abesto/python_ircd
 

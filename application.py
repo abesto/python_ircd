@@ -1,5 +1,5 @@
 """
-`main`: Main entrypoint of python-ircd. Runs the server.
+`main`: Main entrypoint of python_ircd. Runs the server.
 """
 
 import logging
@@ -52,7 +52,7 @@ async def handle(reader: StreamReader, writer: StreamWriter):
                         "NOTICE",
                         "If this is a problem with the server, please open an issue at:",
                     ),
-                    Message(actor, "NOTICE", "https://github.com/abesto/python-ircd"),
+                    Message(actor, "NOTICE", "https://github.com/abesto/python_ircd"),
                     Message(actor, "NOTICE", "---"),
                     Message(actor, "NOTICE", "The message sent by your client was:"),
                     Message(actor, "NOTICE", line.strip("\n")),
