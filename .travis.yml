@@ -1,9 +1,5 @@
 language: python
-python:
-  - "2.7"
-  - "3.4"
-install:
-  - pip install -r test_requirements.txt -r requirements_common.txt --use-mirrors
-  - if [ `echo $TRAVIS_PYTHON_VERSION | head -c 1` -eq 2 ] ; then pip install -r requirements_python2.txt --use-mirrors; fi
-  - if [ `echo $TRAVIS_PYTHON_VERSION | head -c 1` -eq 3 ] ; then sudo apt-get install cython; pip install -r requirements_python3.txt --use-mirrors; fi
-script: nosetests -w tests
+dist: xenial
+python: 3.7
+install: make setup
+script: make test
