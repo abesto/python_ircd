@@ -1,6 +1,7 @@
 from typing import List
 
 from commands.base import Command
+from include.message import Message
 from include.message import Message as M
 from include.numeric_replies import *
 from models import db, Actor, ActorCollection, Channel, User

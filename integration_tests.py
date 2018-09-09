@@ -26,12 +26,7 @@ class Client:
         self.name = name
         self.test_case = test_case
         self.socket = socket.socket()
-        self.socket.connect(
-            (
-                config.get("server", "listen_host"),
-                port
-            )
-        )
+        self.socket.connect((config.get("server", "listen_host"), port))
         self.socket.setblocking(False)
         self.socket_file = self.socket.makefile("rw", encoding="UTF-8", newline="\r\n")
 
