@@ -3,7 +3,7 @@ from mock import *
 
 from commands.join import JoinCommand
 from include.message import Message as M
-from include.numeric_responses import *
+from include.numeric_replies import *
 
 
 class TestJoinCommand(unittest.TestCase):

@@ -2,7 +2,7 @@ from typing import List
 
 from commands.base import Command
 from include import abnf
-from include.numeric_responses import *
+from include.numeric_replies import *
 from models import db, Channel, User
 
 

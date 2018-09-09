@@ -16,13 +16,13 @@ class IntegrationTest(asynctest.TestCase):
         router = Router()
 
         a0 = ActorDisconnectOnWrite(Mock())
-        await router.send(Message(a0, "FOO"))
+        await router.send([Message(a0, "FOO")])
         a0.connection.close.assert_called_with()
 
         col = ActorCollection(
             [ActorDisconnectOnWrite(Mock()), ActorDisconnectOnWrite(Mock())]
         )
 
-        await router.send(Message(col, "FOO"))
+        await router.send([Message(col, "FOO")])
         for actor in col:
             actor.connection.close.assert_called_with()

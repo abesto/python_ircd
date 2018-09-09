@@ -1,23 +1,33 @@
-"Load, instantiate and call command handlers"
+"""
+`Dispatcher`: Load, instantiate, and call command handlers
+"""
 
 import importlib
 import logging
+from typing import List
 
 from config import config
-from models import db, Actor
+from include.connection import Connection
+from include.message import Message
+from models import db, Actor, Error as ModelsError, Server
 
-log = logging.getLogger(__name__)
+LOG = logging.getLogger(__name__)
 
 
-class Error(Exception):
+class Error(ModelsError):
+    """Represents errors raised by `Dispatcher`"""
+
     pass
 
 
 class Dispatcher:
+    """Load, instantiate, and call command handlers"""
+
     def __init__(self):
         self.handlers = {}
 
-    def register(self, command):
+    def register(self, command: str):
+        """Create and record a `Command` subclass that will handle the IRC command `command`"""
         module = importlib.import_module("commands." + command.lower())
         handler = module.__dict__[command.capitalize() + "Command"]()
         if command != handler.command:
@@ -27,16 +37,21 @@ class Dispatcher:
             )
         self.handlers[handler.command] = handler
 
-    def dispatch(self, connection, message):
+    def dispatch(self, connection: Connection, message: Message) -> List[Message]:
+        """
+        Dispatch a `Message` received through a `Connection`
+        to the right `Command` instance for handling
+        """
         actor = db.get_or_create(Actor, connection)
-        message.target = config.get("server", "servername")
         if message.command not in self.handlers:
             try:
                 self.register(message.command)
-            except ImportError as e:
-                log.warning(
-                    "Unknown command %s. Message was: %s. Error: %s"
-                    % (message.command, repr(message), e)
+            except ImportError as exc:
+                LOG.warning(
+                    "Unknown command %s. Message was: %s. Error: %s",
+                    message.command,
+                    repr(message),
+                    exc,
                 )
-                return
+                return []
         return self.handlers[message.command].handle(actor, message)

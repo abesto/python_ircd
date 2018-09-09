@@ -7,7 +7,7 @@ from typing import List, NamedTuple, Callable, Dict
 from commands.base import Command
 from include import abnf
 from include.message import Message
-from include.numeric_responses import (
+from include.numeric_replies import (
     ERR_NONICKNAMEGIVEN,
     ERR_ERRONEUSNICKNAME,
     ERR_NICKNAMEINUSE,

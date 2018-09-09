@@ -5,7 +5,7 @@ import models
 from commands._welcome import welcome
 from commands.nick import NickCommand
 from include.message import Message as M
-from include.numeric_responses import *
+from include.numeric_replies import *
 from models.user import RegistrationStatus
 
 

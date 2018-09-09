@@ -2,7 +2,7 @@ from dns import resolver, reversename
 from typing import List
 
 from commands.base import Command
-from include.numeric_responses import *
+from include.numeric_replies import *
 from models.user import User
 from ._welcome import welcome
 

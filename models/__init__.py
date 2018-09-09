@@ -18,5 +18,4 @@ from .actor import Actor
 from .actorcollection import ActorCollection
 from .channel import Channel
 
-
 Target = Union[Actor, ActorCollection, Server]

@@ -2,7 +2,7 @@ from typing import List
 
 from commands.base import Command
 from include.message import Message as M
-from include.numeric_responses import *
+from include.numeric_replies import *
 from models import db, Actor, ActorCollection, Channel, User
 
 
@@ -36,7 +36,7 @@ class PrivmsgCommand(Command):
             elif db.exists(User, receiver):
                 resp.append(
                     M(
-                        Actor.by_user(db.get(User, receiver)),
+                        db.get(User, receiver).actor,
                         self.command,
                         str(receiver),
                         text,

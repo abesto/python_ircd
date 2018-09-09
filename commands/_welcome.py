@@ -5,7 +5,7 @@ from typing import List
 
 from config import config
 from include.message import Message
-from include.numeric_responses import (
+from include.numeric_replies import (
     RPL_WELCOME,
     RPL_YOURHOST,
     RPL_CREATED,

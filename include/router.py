@@ -1,12 +1,13 @@
 import itertools
 
 import logging
+from typing import List
 
 log = logging.getLogger(__name__)
 
 from config import config
 from commands.quit import QuitCommand
-from include.message import Message as M
+from include.message import Message
 
 
 class Error(Exception):
@@ -14,12 +15,9 @@ class Error(Exception):
 
 
 class Router(object):
-    async def send(self, messages):
+    async def send(self, messages: List[Message]):
         if messages is None:
             return
-
-        if not isinstance(messages, list):
-            messages = [messages]
 
         actors = set()
 
@@ -38,7 +36,7 @@ class Router(object):
             if actor.connection_dropped:
                 if actor.is_user():
                     cmd = QuitCommand()
-                    message = M(None, "QUIT", "Connection lost")
+                    message = Message(actor, "QUIT", "Connection lost")
                     await self.send(cmd.handle(actor, message))
                 # TODO: is_server
 

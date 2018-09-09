@@ -2,12 +2,11 @@
 Stores and manages the connections of users and other IRC servers
 """
 import logging
-from typing import Optional, TypeVar, Type
+from typing import Optional, TypeVar, Type, TYPE_CHECKING
 
 from include.connection import Connection
-from include.message import Message
-from models import Error, User, Server
-from models.base import BaseModel
+
+from models import Error, User, Server, BaseModel
 
 LOG = logging.getLogger(__name__)
 
@@ -48,20 +47,6 @@ class Actor(BaseModel[Connection, TActor]):
 
     def _set_key(self, new_key: Connection):
         self.connection = new_key
-
-    @classmethod
-    def by_user(cls: Type[TActor], user: User) -> TActor:
-        """
-        Look up an `Actor` by a `User` instance
-        """
-        return user.actor
-
-    @classmethod
-    def by_server(cls: Type[TActor], server: Server) -> TActor:
-        """
-        Look up an `Actor` by a `Server` instance
-        """
-        return server.actor
 
     # Union of User and Server
     def is_user(self) -> bool:
@@ -113,7 +98,7 @@ class Actor(BaseModel[Connection, TActor]):
         return str(self)
 
     # Implement socket-like interface
-    def write(self, message: Message) -> None:
+    def write(self, message: "Message") -> None:
         """Serialize and write a `Message` onto the connection managed by this `Actor`"""
         if self.is_user() and message.add_nick:
             message.parameters.insert(0, self.get_user().nickname)
@@ -144,3 +129,9 @@ class Actor(BaseModel[Connection, TActor]):
 
     def __iter__(self):
         return iter([self])
+
+
+# pylint: disable=wrong-import-position,unused-import
+# Import Message at the end to break circular dependency between Actor and Message.
+# We need it only for type-checking, and `if typing.TYPE_CHECKING` didn't seem to work.
+from include.message import Message

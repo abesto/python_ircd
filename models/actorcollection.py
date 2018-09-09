@@ -5,14 +5,11 @@
 
 import asyncio
 
-import models
 from include.message import Message
-from models.actor import Actor
-from models.server import Server
-from models.user import User
+from models import Actor, Server, User, Error as ModelsError
 
 
-class Error(models.Error):
+class Error(ModelsError):
     """Caller / logic error in ActorCollection"""
 
     pass
@@ -26,10 +23,8 @@ class ActorCollection:
         for child in children:
             if isinstance(child, Actor):
                 self.children.add(child)
-            elif isinstance(child, User):
-                self.children.add(Actor.by_user(child))
-            elif isinstance(child, Server):
-                self.children.add(Actor.by_server(child))
+            elif isinstance(child, User) or isinstance(child, Server):
+                self.children.add(child.actor)
             elif isinstance(child, ActorCollection):
                 self.children += child.children
             else:

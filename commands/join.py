@@ -8,7 +8,7 @@ from typing import List, Optional, DefaultDict
 from commands.base import Command
 from include.flatten import flatten
 from include.message import Message
-from include.numeric_responses import (
+from include.numeric_replies import (
     ERR_NOSUCHCHANNEL,
     RPL_NAMEREPLY,
     RPL_ENDOFNAMES,

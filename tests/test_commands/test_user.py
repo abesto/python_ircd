@@ -3,7 +3,7 @@ from mock import *
 
 from commands._welcome import welcome
 from commands.user import UserCommand
-from include.numeric_responses import *
+from include.numeric_replies import *
 
 
 class TestNickCommand(unittest.TestCase):

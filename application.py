@@ -2,8 +2,8 @@
 `main`: Main entrypoint of python-ircd. Runs the server.
 """
 
-import asyncio
 import logging
+import asyncio
 from asyncio import StreamReader, StreamWriter
 
 from config import config
@@ -11,11 +11,12 @@ from include.connection import Connection
 from include.dispatcher import Dispatcher
 from include.message import Message
 from include.router import Router, Error as RouterError
-from models import db, Actor
+from models import db, Actor, Server
 
 LOG = logging.getLogger()
 DISPATCHER = Dispatcher()
 ROUTER = Router()
+SERVER: Server = Server(config.get("server", "servername"))
 
 
 async def handle(reader: StreamReader, writer: StreamWriter):
@@ -28,8 +29,9 @@ async def handle(reader: StreamReader, writer: StreamWriter):
         if line == "":
             connection.disconnect()
             continue
+        # pylint: disable=broad-except
         try:
-            msg = Message.from_string(line)
+            msg = Message.from_string(SERVER, line)
             LOG.debug("<= %s %s", repr(msg.target), repr(msg))
             resp = DISPATCHER.dispatch(connection, msg)
         except Exception as exc:
@@ -61,15 +63,13 @@ async def handle(reader: StreamReader, writer: StreamWriter):
                     Message(actor, "NOTICE", "Closing connection."),
                 ]
                 quit_resp = DISPATCHER.dispatch(
-                    connection, Message(None, "QUIT", "Protocol error")
+                    connection, Message(SERVER, "QUIT", "Protocol error")
                 )
-                if isinstance(quit_resp, list):
-                    resp += quit_resp
-                else:
-                    resp.append(quit_resp)
+                resp += quit_resp
             else:
-                resp = Message(actor, "ERROR")
+                resp = [Message(actor, "ERROR")]
             connection.disconnect()
+        # pylint: enable=broad-except
 
         try:
             await ROUTER.send(resp)

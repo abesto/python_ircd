@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 from typing import TypeVar, Generic, List
 
 from include.message import Message
-from include.numeric_responses import ERR_NOTREGISTERED, ERR_NEEDMOREPARAMS
+from include.numeric_replies import ERR_NOTREGISTERED, ERR_NEEDMOREPARAMS
 from models import Actor
 
 TMessage = TypeVar("TMessage", bound=Message)
@@ -73,7 +73,7 @@ class Command(Generic[TMessage], ABC):
 
     # pylint: enable=no-self-use
 
-    def handle(self, actor: Actor, message: TMessage):
+    def handle(self, actor: Actor, message: TMessage) -> List[Message]:
         """Execute this command, with parameters defined in the `message` sent by `actor`"""
         self.cleanup()
         self.actor = actor
@@ -85,7 +85,7 @@ class Command(Generic[TMessage], ABC):
         if not actor.is_user() and not actor.is_server():
             return self._handle_registration(actor, message)
         if len(message.parameters) < self.required_parameter_count:
-            return ERR_NEEDMOREPARAMS(self.command, actor)
+            return [ERR_NEEDMOREPARAMS(self.command, actor)]
         if actor.is_server():
             self.server = self.actor.get_server()
             return self.from_server(*message.parameters)
@@ -93,16 +93,16 @@ class Command(Generic[TMessage], ABC):
             self.user = self.actor.get_user()
             registered = self.user.registered.both
             if not (self.user_registration_command or registered):
-                return ERR_NOTREGISTERED(self.actor)
+                return [ERR_NOTREGISTERED(self.actor)]
             message.prefix = str(self.user)
             return self.from_user(*message.parameters)
         raise Exception("Don't know what to do :(")
 
-    def _handle_registration(self, actor, message):
+    def _handle_registration(self, actor: Actor, message: TMessage) -> List[Message]:
         if self.user_registration_command:
             if self.server_registration_command:
                 return self.common()
             return self.from_user(*message.parameters)
         if self.server_registration_command:
             return self.from_server(*message.parameters)
-        return ERR_NOTREGISTERED(actor)
+        return [ERR_NOTREGISTERED(actor)]

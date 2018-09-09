@@ -2,8 +2,8 @@
 Parse incoming messages using pyparsing.
 Wildcards are recognized using regular expressions.
 """
-# pylint: disable=import-error
-from pydispatch import dispatcher
+from typing import List, Any, Optional as TOptional, Union, Tuple
+
 from pyparsing import (
     ParseException,
     oneOf,
@@ -20,28 +20,17 @@ from pyparsing import (
     Regex,
     ParserElement,
 )
-from typing import List, Any, Optional as TOptional, Union, Tuple
+
+# pylint: disable=import-error
+from pydispatch import dispatcher
+
+# pylint: enable=import-error
 
 from config import config
 
 
 # pylint: enable=import-error
-
-
-def flatten(data) -> List[Any]:
-    """
-    Flatten an arbitrarily deeply nested list of lists.
-    Argument not typed pending recursive types, see https://github.com/python/mypy/issues/731
-    """
-    if not isinstance(data, list):
-        return data
-    ret = []
-    for item in data:
-        if isinstance(item, list):
-            ret.extend(flatten(item))
-        else:
-            ret.append(item)
-    return ret
+from include.flatten import flatten
 
 
 def join_str_lists(data) -> Union[str, List[Any]]:
@@ -192,10 +181,15 @@ class IrcParser:
     matchmany = "[%s-%s]*" % (chr(0x01), chr(0xFF))
 
     @staticmethod
-    def parse(input_str, parser) -> TOptional[List[Any]]:
+    def parse(
+        input_str: str, parser: ParserElement
+    ) -> TOptional[Union[str, List[Any]]]:
         """Main entrypoint"""
         try:
-            return flatten(join_str_lists(parser.parseString(input_str, True)))
+            joined = join_str_lists(parser.parseString(input_str, True))
+            if isinstance(joined, str):
+                return joined
+            return flatten(joined)
         except ParseException:
             return None
 
