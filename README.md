@@ -32,7 +32,6 @@ Development environment, you need to install these yourself on your system:
  * `make`: simple way to run tasks
  
 Code quality tools, set up by `make setup` via `pipenv`:
- * `nose`, `mock`: for tests, obviously
  * `asynctest`: less painful testing when `asyncio` is involved
  * `mypy`: static type checking
  * `pylint`: code quality
