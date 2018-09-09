@@ -27,7 +27,6 @@ class Router(object):
                 message.prefix = config.get("server", "servername")
             actors.add(message.target)
             message.target.write(message)
-            log.debug("=> %s %s" % (repr(message.target), repr(message)))
 
         for target in actors:
             await target.flush()

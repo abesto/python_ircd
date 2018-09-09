@@ -5,9 +5,10 @@
 import importlib
 import logging
 from typing import List
+from pydispatch import dispatcher
 
 from config import config
-from include.connection import Connection
+from include.connection import Connection, SelfConnection
 from include.message import Message
 from models import db, Actor, Error as ModelsError, Server
 
@@ -53,5 +54,5 @@ class Dispatcher:
                     repr(message),
                     exc,
                 )
-                return []
+                raise Error("Unknown command: %s" % message.command)
         return self.handlers[message.command].handle(actor, message)

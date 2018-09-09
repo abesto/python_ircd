@@ -2,11 +2,11 @@
 Stores and manages the connections of users and other IRC servers
 """
 import logging
-from typing import Optional, TypeVar, Type, TYPE_CHECKING
+from typing import Optional, TypeVar
 
 from include.connection import Connection
-
-from models import Error, User, Server, BaseModel
+from models import Error, User, BaseModel
+from .server import Server
 
 LOG = logging.getLogger(__name__)
 
@@ -102,6 +102,7 @@ class Actor(BaseModel[Connection, TActor]):
         """Serialize and write a `Message` onto the connection managed by this `Actor`"""
         if self.is_user() and message.add_nick:
             message.parameters.insert(0, self.get_user().nickname)
+        LOG.debug("=> %s %s" % (repr(self), repr(message)))
         # pylint: disable=bare-except
         try:
             self.connection.write(message)
@@ -131,7 +132,7 @@ class Actor(BaseModel[Connection, TActor]):
         return iter([self])
 
 
-# pylint: disable=wrong-import-position,unused-import
+# pylint: disable=wrong-import-position,unused-import,ungrouped-imports
 # Import Message at the end to break circular dependency between Actor and Message.
 # We need it only for type-checking, and `if typing.TYPE_CHECKING` didn't seem to work.
 from include.message import Message

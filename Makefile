@@ -15,7 +15,7 @@ unittest:
 	pipenv run nosetests tests
 
 integration-test:
-	./run_integration_tests.sh
+	pipenv run nosetests integration_tests.py
 
 mypy:
 	pipenv run mypy . --ignore-missing-imports

@@ -7,7 +7,7 @@ import asyncio
 from asyncio import StreamReader, StreamWriter
 
 from config import config
-from include.connection import Connection
+from include.connection import Connection, SelfConnection
 from include.dispatcher import Dispatcher
 from include.message import Message
 from include.router import Router, Error as RouterError
@@ -16,7 +16,6 @@ from models import db, Actor, Server
 LOG = logging.getLogger()
 DISPATCHER = Dispatcher()
 ROUTER = Router()
-SERVER: Server = Server(config.get("server", "servername"))
 
 
 async def handle(reader: StreamReader, writer: StreamWriter):
@@ -24,6 +23,7 @@ async def handle(reader: StreamReader, writer: StreamWriter):
     Handle a single connection from a user or another server
     """
     connection = Connection(reader, writer)
+    actor = db.get_or_create(Actor, connection)
     while not connection.disconnected:
         line = await connection.readline()
         if line == "":
@@ -31,12 +31,11 @@ async def handle(reader: StreamReader, writer: StreamWriter):
             continue
         # pylint: disable=broad-except
         try:
-            msg = Message.from_string(SERVER, line)
+            msg = Message.from_string(actor, line)
             LOG.debug("<= %s %s", repr(msg.target), repr(msg))
             resp = DISPATCHER.dispatch(connection, msg)
         except Exception as exc:
             LOG.exception(exc)
-            actor = db.get_or_create(Actor, connection)
             if (
                 actor.is_user()
                 and actor.get_user().registered.nick
@@ -63,7 +62,7 @@ async def handle(reader: StreamReader, writer: StreamWriter):
                     Message(actor, "NOTICE", "Closing connection."),
                 ]
                 quit_resp = DISPATCHER.dispatch(
-                    connection, Message(SERVER, "QUIT", "Protocol error")
+                    connection, Message(actor, "QUIT", "Protocol error")
                 )
                 resp += quit_resp
             else:
@@ -78,20 +77,24 @@ async def handle(reader: StreamReader, writer: StreamWriter):
             connection.disconnect()
 
 
-def main():
-    """Run the server."""
+def create_server(loop):
+    """Create asyncio coroutine to run the server"""
     host = config.get("server", "listen_host")
     port = config.getint("server", "listen_port")
     LOG.info("Starting server, listening on %s:%s", host, port)
+    return asyncio.start_server(handle, host, port, loop=loop)
 
+
+async def main():
+    """Run the server"""
     loop = asyncio.get_event_loop()
-    coroutine = asyncio.start_server(handle, host, port, loop=loop)
+    coroutine = await create_server(loop)
+    await coroutine.serve_forever()
     loop.run_until_complete(coroutine)
-    loop.run_forever()
     coroutine.close()
 
     LOG.info("Server stopped")
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.get_event_loop().run_until_complete(main())

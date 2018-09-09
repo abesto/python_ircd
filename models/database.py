@@ -61,5 +61,11 @@ class Database:
         self.objects[cls][key] = model
         return model
 
+    def flush(self):
+        """Clear the database."""
+        # TODO should probably manage a DB instance per server instead of using
+        # TODO a global DB, which would let me get rid of this method only needed for tests
+        self.objects = {}
+
 
 DEFAULT_DATABASE = Database()

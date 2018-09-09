@@ -23,7 +23,7 @@ class ActorCollection:
         for child in children:
             if isinstance(child, Actor):
                 self.children.add(child)
-            elif isinstance(child, User) or isinstance(child, Server):
+            elif isinstance(child, (User, Server)):
                 self.children.add(child.actor)
             elif isinstance(child, ActorCollection):
                 self.children += child.children

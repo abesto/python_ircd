@@ -12,10 +12,10 @@ from typing import Union
 from .error import Error
 from .base import BaseModel
 from .database import DEFAULT_DATABASE as db
-from .server import Server
 from .user import User
+from .channel import Channel
+from .server import Server
 from .actor import Actor
 from .actorcollection import ActorCollection
-from .channel import Channel
 
-Target = Union[Actor, ActorCollection, Server]
+Target = Union[Actor, ActorCollection]
