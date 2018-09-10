@@ -23,8 +23,8 @@ class Client:
 
     test_case: asynctest.TestCase
     responses: List[List[str]] = []
-    timeout = 0.2
-    timeout_step = 0.001
+    timeout = 0.5
+    timeout_step = 0.01
 
     def __init__(self, name: str, test_case: asynctest.TestCase, port: int) -> None:
         self.name = name
