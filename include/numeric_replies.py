@@ -208,19 +208,44 @@ def ERR_NOSUCHCHANNEL(channel_name: str, target: Target) -> Message:
     return _M(target, "401", channel_name, "No such channel")
 
 
-def ERR_NOSUCHSERVER(server, target):
+def ERR_NOSUCHSERVER(server: str, target: Target) -> Message:
+    """
+    402    ERR_NOSUCHSERVER
+           "<server name> :No such server"
+
+      - Used to indicate the server name given currently
+        does not exist.
+    """
     return _M(target, "402", server, "No such server")
 
 
-def ERR_CANNOTSENDTOCHAN(channelname, target):
-    return _M(target, "404", channelname, "Cannot send to channel")
+def ERR_CANNOTSENDTOCHAN(channel_name: str, target: Target) -> Message:
+    """
+    404    ERR_CANNOTSENDTOCHAN
+           "<channel name> :Cannot send to channel"
+
+      - Sent to a user who is either (a) not on a channel
+        which is mode +n or (b) not a chanop (or mode +v) on
+        a channel which has mode +m set or where the user is
+        banned and is trying to send a PRIVMSG message to
+        that channel.
+    """
+    return _M(target, "404", channel_name, "Cannot send to channel")
 
 
-def ERR_NORECIPIENT(command, target):
+def ERR_NORECIPIENT(command: str, target: Target) -> Message:
+    """
+    411    ERR_NORECIPIENT
+           ":No recipient given (<command>)"
+    """
     return _M(target, "411", "No recipient given " + command)
 
 
-def ERR_NOTEXTTOSEND(target):
+def ERR_NOTEXTTOSEND(target: Target) -> Message:
+    """
+    412    ERR_NOTEXTTOSEND
+           ":No text to send"
+    """
     return _M(target, "412", "No text to send")
 
 

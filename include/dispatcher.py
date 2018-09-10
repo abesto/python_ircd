@@ -5,12 +5,10 @@
 import importlib
 import logging
 from typing import List
-from pydispatch import dispatcher
 
-from config import config
-from include.connection import Connection, SelfConnection
+from include.connection import Connection
 from include.message import Message
-from models import db, Actor, Error as ModelsError, Server
+from models import db, Actor, Error as ModelsError
 
 LOG = logging.getLogger(__name__)
 

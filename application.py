@@ -7,11 +7,11 @@ import asyncio
 from asyncio import StreamReader, StreamWriter
 
 from config import config
-from include.connection import Connection, SelfConnection
+from include.connection import Connection
 from include.dispatcher import Dispatcher
 from include.message import Message
 from include.router import Router, Error as RouterError
-from models import db, Actor, Server
+from models import db, Actor
 
 LOG = logging.getLogger()
 DISPATCHER = Dispatcher()

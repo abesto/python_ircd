@@ -68,7 +68,8 @@ class SelfConnection(Connection):
     """Dummy `Connection` representing the running server itself"""
 
     def __init__(self):
-        pass
+        # noinspection PyTypeChecker
+        super().__init__(None, None)
 
     def close(self):
         raise Exception("SelfConnection.close makes no sense")
