@@ -249,37 +249,107 @@ def ERR_NOTEXTTOSEND(target: Target) -> Message:
     return _M(target, "412", "No text to send")
 
 
-def ERR_UNKNOWNCOMMAND(command: str, target: Target):
+def ERR_UNKNOWNCOMMAND(command: str, target: Target) -> Message:
+    """
+    421    ERR_UNKNOWNCOMMAND
+           "<command> :Unknown command"
+
+      - Returned to a registered client to indicate that the
+        command sent is unknown by the server.
+    """
     return _M(target, "421", "{} :Unknown command".format(command))
 
 
-def ERR_NONICKNAMEGIVEN(target):
+def ERR_NONICKNAMEGIVEN(target: Target) -> Message:
+    """
+    431    ERR_NONICKNAMEGIVEN
+           ":No nickname given"
+
+     - Returned when a nickname parameter expected for a
+       command and isn't found.
+   """
     return _M(target, "431", "No nickname given")
 
 
-def ERR_ERRONEUSNICKNAME(nickname, target):
+def ERR_ERRONEUSNICKNAME(nickname: str, target: Target) -> Message:
+    """
+    432    ERR_ERRONEUSNICKNAME
+           "<nick> :Erroneous nickname"
+
+     - Returned after receiving a NICK message which contains
+       characters which do not fall in the defined set.  See
+       section 2.3.1 for details on valid nicknames.
+    """
     return _M(target, "432", nickname, "Erroneous nickname")
 
 
-def ERR_NICKNAMEINUSE(nickname, target):
+def ERR_NICKNAMEINUSE(nickname: str, target: Target) -> Message:
+    """
+    433    ERR_NICKNAMEINUSE
+           "<nick> :Nickname is already in use"
+
+      - Returned when a NICK message is processed that results
+        in an attempt to change to a currently existing
+       nickname.
+    """
     return _M(target, "433", nickname, "Nickname is already in use")
 
 
-def ERR_NICKCOLLISION(nickname, target):
+def ERR_NICKCOLLISION(nickname: str, target: Target) -> Message:
+    """"
+    436    ERR_NICKCOLLISION
+           "<nick> :Nickname collision KILL from <user>@<host>"
+
+      - Returned by a server to a client when it detects a
+        nickname collision (registered of a NICK that
+        already exists by another server).
+    """
     return _M(target, "436", nickname, "Nickname collision KILL")
 
 
-def ERR_NOTONCHANNEL(channel, target):
-    return _M(target, "442", channel, "You're not on that channel")
+def ERR_NOTONCHANNEL(channel_name: str, target: Target) -> Message:
+    """
+    442    ERR_NOTONCHANNEL
+           "<channel> :You're not on that channel"
+
+      - Returned by the server whenever a client tries to
+        perform a channel affecting command for which the
+        client isn't a member.
+    """
+    return _M(target, "442", channel_name, "You're not on that channel")
 
 
-def ERR_NOTREGISTERED(target):
+def ERR_NOTREGISTERED(target: Target) -> Message:
+    """
+    451    ERR_NOTREGISTERED
+           ":You have not registered"
+
+      - Returned by the server to indicate that the client
+        MUST be registered before the server will allow it
+        to be parsed in detail.
+    """
     return _M(target, "451", "You have not registered")
 
 
-def ERR_NEEDMOREPARAMS(command, target):
+def ERR_NEEDMOREPARAMS(command: str, target: Target) -> Message:
+    """
+    461    ERR_NEEDMOREPARAMS
+           "<command> :Not enough parameters"
+
+      - Returned by the server by numerous commands to
+        indicate to the client that it didn't supply enough
+        parameters.
+    """
     return _M(target, "461", command, "Not enough parameters")
 
 
-def ERR_ALREADYREGISTRED(target):
+def ERR_ALREADYREGISTRED(target: Target) -> Message:
+    """
+    462    ERR_ALREADYREGISTRED
+           ":Unauthorized command (already registered)"
+
+      - Returned by the server to any link which tries to
+        change part of the registered details (such as
+        password or user details from second USER message).
+    """
     return _M(target, "462", "You may not reregister")
