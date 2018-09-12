@@ -1,10 +1,14 @@
+"""
+`PingCommand`: Implements the PING IRC command
+"""
 from typing import List
 
 from commands.base import Command
-from include.message import Message as M, Message
+from include.message import Message
 
 
 class PingCommand(Command):
+    """Implements the PING IRC command"""
     def from_server(self, *args) -> List[Message]:
         raise Exception("IRC: Server Protocol (RFC2813) is not (yet?) implemented")
 
@@ -12,4 +16,4 @@ class PingCommand(Command):
     command = "PING"
 
     def from_user(self, *args):
-        return M(self.actor, "PONG", *args)
+        return Message(self.actor, "PONG", *args)
